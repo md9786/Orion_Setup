@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Fix line endings in case script was saved with CRLF (Windows-style)
+sed -i 's/\r$//' "$0"
+
 # Function to display the menu
 show_menu() {
     clear
@@ -1108,10 +1112,7 @@ while true; do
         2)
             run_hermes
             ;;
-        3)
-            run_ares
-            run_hermes
-            ;;
+     
         0)
             echo "Exiting..."
             exit 0
