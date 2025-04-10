@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fix line endings in case script was saved with CRLF (Windows-style)
+sed -i 's/\r$//' "$0"
+
 # Function to display the menu
 show_menu() {
     clear
@@ -20,7 +23,7 @@ show_menu() {
     echo "║ 0. Exit                                    ║"
     echo "╚════════════════════════════════════════════╝"
     echo ""
-    read -p "Enter your choice (0-3): " choice
+    read -p "Enter your choice (0-2): " choice
 }
 
 # Function to run Ares server setup
