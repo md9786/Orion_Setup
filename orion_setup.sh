@@ -196,7 +196,7 @@ EOF"
     echo "🟢 10 RAR files of 100 MB each created."
 
     # Create the upload script
-    sudo tee /upload.sh >/dev/null <<'EOF'
+    sudo tee /root/upload.sh >/dev/null <<'EOF'
 #!/bin/bash
 
 echo "🟢 Monitoring network traffic..."
@@ -260,10 +260,10 @@ fi
 EOF
 
     # Set permissions
-    sudo chmod +x /upload.sh
+    sudo chmod +x /root/upload.sh
 
     # Add to root's crontab
-    sudo bash -c 'echo "*/5 * * * * /upload.sh >/dev/null 2>&1" >> /etc/crontab'
+    sudo bash -c 'echo "*/5 * * * * /root/upload.sh >/dev/null 2>&1" >> /etc/crontab'
 
     echo "🟢 upload.sh has been successfully created in / directory"
 
