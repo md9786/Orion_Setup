@@ -31,7 +31,10 @@ run_ares() {
     echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
     echo "| Domestic server setup|🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵|"
     echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
-    
+    # Set Timezone
+    sudo timedatectl set-timezone Asia/Tehran
+    echo "🟢 Timezone Set For Tehran/Asia"
+
     # Function to detect available network interfaces
     detect_interfaces() {
         interfaces=($(ip -o link show | awk -F': ' '{print $2}' | grep -v lo))
@@ -140,7 +143,6 @@ run_ares() {
     # Create the new configuration
     sudo bash -c "cat > /etc/systemd/resolved.conf << EOF
 [Resolve]
-DNSStubListener=no
 DNS=$IPV4
 EOF"
 
@@ -597,6 +599,9 @@ run_hermes() {
     echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
     echo "| Foreign server setup|🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣|"
     echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
+    # Set Timezone
+    sudo timedatectl set-timezone Asia/Tehran
+    echo "🟢 Timezone Set For Tehran/Asia"
 
     # Function to prompt user for input with validation
     prompt_user() {
@@ -713,8 +718,9 @@ run_hermes() {
     # Create the new configuration
     sudo bash -c "cat > /etc/systemd/resolved.conf << EOF
 [Resolve]
+DNS=127.0.0.1
+Domains=~.
 DNSStubListener=no
-DNS=$IPV4
 EOF"
 
     # Restart the systemd-resolved service to apply changes
@@ -745,10 +751,10 @@ http:
   session_ttl: 720h
 users:
   - name: dani
-    password: \$2a\$10\$MXZkqwVo6sNLfewm5EIZgOJFp9Y991PpvK5vp8nt8AaDkXj9Zcfli
+    password: $2a$10$MXZkqwVo6sNLfewm5EIZgOJFp9Y991PpvK5vp8nt8AaDkXj9Zcfli
 auth_attempts: 5
 block_auth_min: 15
-http_proxy: \"\"
+http_proxy: ""
 language: en
 theme: auto
 dns:
@@ -767,7 +773,7 @@ dns:
     - 2001:4860:4860::8888
     - 2001:4860:4860::8844
     - https://dns.quad9.net/dns-query
-  upstream_dns_file: \"\"
+  upstream_dns_file: ""
   bootstrap_dns:
     - 9.9.9.9
     - 149.112.112.112
@@ -798,13 +804,13 @@ dns:
   aaaa_disabled: false
   enable_dnssec: true
   edns_client_subnet:
-    custom_ip: \"\"
+    custom_ip: ""
     enabled: false
     use_custom: false
   max_goroutines: 300
   handle_ddr: true
   ipset: []
-  ipset_file: \"\"
+  ipset_file: ""
   bootstrap_prefer_ipv6: false
   upstream_timeout: 10s
   private_networks: []
@@ -818,28 +824,28 @@ dns:
   hostsfile_enabled: true
 tls:
   enabled: true
-  server_name: \"\"
+  server_name: ""
   force_https: false
   port_https: 443
   port_dns_over_tls: 853
   port_dns_over_quic: 853
   port_dnscrypt: 0
-  dnscrypt_config_file: \"\"
+  dnscrypt_config_file: ""
   allow_unencrypted_doh: false
-  certificate_chain: \"\"
-  private_key: \"\"
-  certificate_path: /root/cert/$DOMAIN/fullchain.pem
-  private_key_path: /root/cert/$DOMAIN/privkey.pem
+  certificate_chain: ""
+  private_key: ""
+  certificate_path: /root/cert/hermes.orionnexus.top/fullchain.pem
+  private_key_path: /root/cert/hermes.orionnexus.top/privkey.pem
   strict_sni_check: false
 querylog:
-  dir_path: \"\"
+  dir_path: ""
   ignored: []
-  interval: 168h
+  interval: 24h
   size_memory: 1000
   enabled: true
   file_enabled: true
 statistics:
-  dir_path: \"\"
+  dir_path: ""
   ignored: []
   interval: 24h
   enabled: true
@@ -916,34 +922,42 @@ filters:
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
     name: Malicious URL Blocklist (URLHaus)
     id: 1743772235
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_19.txt
+    name: 'IRN: PersianBlocker list'
+    id: 1744143029
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt
+    name: Phishing Army
+    id: 1744143030
 whitelist_filters:
   - enabled: true
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/whitelist-urlshortener.txt
     name: Url Shortner
     id: 1743772236
 user_rules:
-  - '@@||$DOMAIN^'
-  - '@@||afpik.php^'
+  - '@@||orionnexus.top^'
+  - '@@||mpic.lol^'
 dhcp:
   enabled: false
-  interface_name: \"\"
+  interface_name: ""
   local_domain_name: lan
   dhcpv4:
-    gateway_ip: \"\"
-    subnet_mask: \"\"
-    range_start: \"\"
-    range_end: \"\"
+    gateway_ip: ""
+    subnet_mask: ""
+    range_start: ""
+    range_end: ""
     lease_duration: 86400
     icmp_timeout_msec: 1000
     options: []
   dhcpv6:
-    range_start: \"\"
+    range_start: ""
     lease_duration: 86400
     ra_slaac_only: false
     ra_allow_slaac: false
 filtering:
-  blocking_ipv4: \"\"
-  blocking_ipv6: \"\"
+  blocking_ipv4: ""
+  blocking_ipv6: ""
   blocked_services:
     schedule:
       time_zone: Local
@@ -995,12 +1009,12 @@ clients:
         schedule:
           time_zone: Local
         ids: []
-      name: Abramad
+      name: AEZA
       ids:
-        - 92.61.182.163
+        - 127.0.0.1
       tags: []
       upstreams: []
-      uid: 01960176-09d0-74f3-a890-df7f2f00960b
+      uid: 01962f1a-bd38-7843-82e8-94fcb36b2a31
       upstreams_cache_size: 0
       upstreams_cache_enabled: false
       use_global_settings: true
@@ -1023,12 +1037,12 @@ clients:
         schedule:
           time_zone: Local
         ids: []
-      name: Aeza
+      name: Abramad
       ids:
-        - $IPV4
+        - 92.61.182.163
       tags: []
       upstreams: []
-      uid: 01960175-50e4-716a-94ac-e6667aba8c01
+      uid: 01960176-09d0-74f3-a890-df7f2f00960b
       upstreams_cache_size: 0
       upstreams_cache_enabled: false
       use_global_settings: true
@@ -1040,7 +1054,7 @@ clients:
       ignore_statistics: false
 log:
   enabled: true
-  file: \"\"
+  file: ""
   max_backups: 0
   max_size: 100
   max_age: 3
@@ -1048,8 +1062,8 @@ log:
   local_time: false
   verbose: false
 os:
-  group: \"\"
-  user: \"\"
+  group: ""
+  user: ""
   rlimit_nofile: 0
 schema_version: 29
 EOF"
