@@ -4,7 +4,7 @@
     sudo apt-get update
 
 # Fix line endings in case script was saved with CRLF (Windows-style)
-sed -i 's/\r$//' "$0"
+
 
 # Function to display the menu
 show_menu() {
