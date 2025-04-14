@@ -1,7 +1,7 @@
 #!/bin/bash
 # Update the package list
 echo "🟢 Updating package list..."
-sudo apt-get update
+apt-get update -y && apt-get upgrade -y
 # Function to display the menu
 show_menu() {
     clear
