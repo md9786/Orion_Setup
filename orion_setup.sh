@@ -1082,7 +1082,7 @@ EOF"
         sleep 2; echo "5"
         sleep 2; echo "$DOMAIN"
         sleep 2; echo "0"
-        sleep 2; echo "10"
+        sleep 2; echo "0"
     } | x-ui
 
     echo "🟢 All tasks completed successfully."
