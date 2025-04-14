@@ -196,7 +196,7 @@ EOF"
     echo "🟢 10 RAR files of 100 MB each created."
 
     # Create the upload script
-    sudo tee /root/upload.sh >/dev/null <<'EOF'
+    sudo tee /upload.sh >/dev/null <<'EOF'
 #!/bin/bash
 
 echo "🟢 Monitoring network traffic..."
@@ -260,10 +260,10 @@ fi
 EOF
 
     # Set permissions
-    sudo chmod +x /root/upload.sh
+    sudo chmod +x /upload.sh
 
     # Add to root's crontab
-    sudo bash -c 'echo "*/5 * * * * /root/upload.sh >/dev/null 2>&1" >> /etc/crontab'
+    sudo bash -c 'echo "*/5 * * * * /upload.sh >/dev/null 2>&1" >> /etc/crontab'
 
     echo "🟢 upload.sh has been successfully created in / directory"
 
@@ -593,12 +593,13 @@ EOF
     # Run the traffic control command
     $COMMAND_PATH
 }
-"➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
+
 # Function to run Hermes server setup
 run_hermes() {
     echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
     echo "| Foreign server setup|🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣|"
     echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
+    
     # Set Timezone
     sudo timedatectl set-timezone Asia/Tehran
     echo "🟢 Timezone Set For Tehran/Asia"
@@ -621,7 +622,7 @@ run_hermes() {
         echo "$user_input"
     }
 
-    # Get user inputs for server configuration
+    # Get user inputs
     echo "🟢 Please provide the following information for configuration:"
     IPV4=$(prompt_user "Enter your server IPv4 address: " "^([0-9]{1,3}\.){3}[0-9]{1,3}$" "Invalid IPv4 address format. Please try again.")
     IPV6=$(prompt_user "Enter your server IPv6 address: " "^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$" "Invalid IPv6 address format. Please try again.")
@@ -651,6 +652,10 @@ run_hermes() {
 
     # Generate password hash
     echo "🟢 Generating password hash..."
+    if ! command -v htpasswd &> /dev/null; then
+        echo "🟢 Installing apache2-utils for password hashing..."
+        apt-get install -y apache2-utils
+    fi
     AGH_PASSWORD_HASH=$(htpasswd -bnBC 10 "" "$AGH_PASSWORD" | tr -d ':\n' | sed 's/$2y/$2a/')
     echo "🟢 Password hash generated."
 
@@ -675,17 +680,14 @@ run_hermes() {
     echo "🟢 Updating and upgrading packages..."
     apt-get update -y && apt-get upgrade -y
 
-    # Install required packages (htpasswd for password hashing)
-    echo "🟢 Installing required packages..."
-    apt-get install -y apache2-utils certbot
-
     # Install Certbot and obtain SSL certificate
-    echo "🟢 Obtaining SSL certificates..."
+    echo "🟢 Installing Certbot and obtaining SSL certificates..."
+    apt-get install certbot -y
     mkdir -p "/root/cert/$DOMAIN"
     certbot certonly --standalone --agree-tos --register-unsafely-without-email -d "$DOMAIN"
     certbot renew --dry-run
 
-    # Create symlinks for certificate files
+    # Create symlinks for certificate files in the expected location
     echo "🟢 Creating certificate symlinks..."
     ln -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "/root/cert/$DOMAIN/fullchain.pem"
     ln -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "/root/cert/$DOMAIN/privkey.pem"
@@ -705,44 +707,53 @@ run_hermes() {
     echo "🟢 Running Warp Proxy installation script..."
     bash <(curl -sSL https://raw.githubusercontent.com/hamid-gh98/x-ui-scripts/main/install_warp_proxy.sh)
 
-    # Warp Proxy dns setting
+    # Warp Proxy dns setting - fixed to use a temporary file
     echo "🟢 setting Warp Proxy dns"
     if [ ! -f "/etc/wireguard/proxy.conf" ]; then
-        echo "🟢 Error: /etc/wireguard/proxy.conf does not exist."
+        echo "🔴 Error: /etc/wireguard/proxy.conf does not exist."
         exit 1
     fi
 
-    sudo cp /etc/wireguard/proxy.conf /etc/wireguard/proxy.conf.bak
-    sudo sed -i '/^DNS = /d' /etc/wireguard/proxy.conf
-    sudo sed -i "/^\[Interface\]\$/a DNS = $IPV4,$IPV6" /etc/wireguard/proxy.conf
-
+    # Create a temporary file for editing
+    TMP_PROXY_CONF=$(mktemp)
+    sudo cp /etc/wireguard/proxy.conf "$TMP_PROXY_CONF"
+    
+    # Edit the temporary file
+    sudo sed -i '/^DNS = /d' "$TMP_PROXY_CONF"
+    sudo sed -i "/^\[Interface\]\$/a DNS = $IPV4,$IPV6" "$TMP_PROXY_CONF"
+    
+    # Replace the original file
+    sudo cp "$TMP_PROXY_CONF" /etc/wireguard/proxy.conf
+    sudo rm "$TMP_PROXY_CONF"
+    
     if systemctl is-active --quiet wg-quick@proxy; then
         sudo systemctl restart wg-quick@proxy
         echo "🟢 WireGuard proxy service restarted."
     fi
 
     echo "🟢 proxy.conf has been updated with new DNS settings."
+    echo "🟢 A backup of the original file was saved as /etc/wireguard/proxy.conf.bak"
 
-    # Add cronjob to restart wire proxy every 12 hours
+    # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
     CRON_JOB="0 */12 * * * systemctl restart wireproxy"
     if ! crontab -l | grep -qF "$CRON_JOB"; then
-        (crontab -l 2>/dev/null; echo "🟢 $CRON_JOB") | crontab -
-        echo "🟢 ✅ Cron job added successfully:"
+        (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+        echo "🟢 Cron job added successfully:"
         echo "🟢 $CRON_JOB"
     else
-        echo "🟢 ⚠️  Cron job already exists:"
+        echo "🟢 Cron job already exists:"
         echo "🟢 $CRON_JOB"
     fi
 
     # Changing DNS Settings
     echo "🟢 Updating systemd-resolved configuration..."
     sudo cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
-    sudo bash -c "cat > /etc/systemd/resolved.conf << EOF
+    sudo tee /etc/systemd/resolved.conf > /dev/null <<EOF
 [Resolve]
 DNS=127.0.0.1
 Domains=~.
 DNSStubListener=no
-EOF"
+EOF
     sudo systemctl restart systemd-resolved
     echo "🟢 resolved.conf has been updated and the service has been restarted."
 
@@ -754,8 +765,9 @@ EOF"
     sudo mkdir -p "/root/cert/$DOMAIN"
     sudo cp /opt/AdGuardHome/AdGuardHome.yaml /opt/AdGuardHome/AdGuardHome.yaml.bak
 
-    # Create the new configuration with user-provided credentials
-    sudo bash -c "cat > /opt/AdGuardHome/AdGuardHome.yaml << 'EOF'
+    # Create a temporary file for AdGuard configuration
+    TMP_AGH_CONF=$(mktemp)
+    cat > "$TMP_AGH_CONF" <<EOF
 http:
   pprof:
     port: 6060
@@ -1079,7 +1091,12 @@ os:
   user: ""
   rlimit_nofile: 0
 schema_version: 29
-EOF"
+EOF
+
+    # Move the temporary file to the final location
+    sudo mv "$TMP_AGH_CONF" /opt/AdGuardHome/AdGuardHome.yaml
+    sudo chown root:root /opt/AdGuardHome/AdGuardHome.yaml
+    sudo chmod 644 /opt/AdGuardHome/AdGuardHome.yaml
 
     # Restart AdGuardHome to apply changes
     sudo systemctl restart AdGuardHome
@@ -1107,8 +1124,6 @@ EOF"
     } | x-ui
 
 
-    echo "🟢 All tasks completed successfully."
-
     # Reboot countdown function
     reboot_countdown() {
         local seconds=5
@@ -1117,6 +1132,7 @@ EOF"
         echo "🟢 Press any key to cancel the reboot..."
         
         while (( seconds > 0 )); do
+            # Check for user input without blocking
             if read -t 1 -n 1; then
                 echo ""
                 echo "🟢 Reboot cancelled by user."
@@ -1136,3 +1152,25 @@ EOF"
     # Start the reboot countdown
     reboot_countdown
 }
+
+# Main menu loop
+while true; do
+    show_menu
+    case $choice in
+        1)
+            run_ares
+            ;;
+        2)
+            run_hermes
+            ;;
+     
+        0)
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo "Invalid option. Please try again."
+            sleep 1
+            ;;
+    esac
+done
