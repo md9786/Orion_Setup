@@ -731,6 +731,7 @@ run_hermes() {
     
     if systemctl is-active --quiet wg-quick@proxy; then
         sudo systemctl restart wg-quick@proxy
+        sudo systemctl restart wireproxy
         echo "🟢 WireGuard proxy service restarted."
     fi
 
