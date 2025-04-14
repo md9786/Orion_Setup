@@ -1,4 +1,5 @@
 #!/bin/bash
+sed -i 's/\r$//' "$0" 2>/dev/null || true
 # Update the package list
 echo "🟢 Updating package list..."
 apt-get update -y && apt-get upgrade -y
