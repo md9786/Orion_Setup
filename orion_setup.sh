@@ -474,7 +474,6 @@ EOF
         sleep 2; echo "0"
         sleep 2; echo "0"
     } | x-ui
-    sleep 5
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
@@ -862,8 +861,8 @@ tls:
   allow_unencrypted_doh: false
   certificate_chain: ""
   private_key: ""
-  certificate_path: /root/cert/pets.orionnexus.top/fullchain.pem
-  private_key_path: /root/cert/pets.orionnexus.top/privkey.pem
+  certificate_path: /root/cert/$DOMAIN/fullchain.pem
+  private_key_path: /root/cert/$DOMAIN/privkey.pem
   strict_sni_check: false
 querylog:
   dir_path: ""
@@ -1118,7 +1117,7 @@ EOF
         sleep 2; echo "0"
         sleep 2; echo "10"
     } | x-ui
-    sleep 5
+    sleep 10
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
