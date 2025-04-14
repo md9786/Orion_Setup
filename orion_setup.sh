@@ -170,25 +170,25 @@ EOF"
     fi
 
     # Navigate to the target directory
-    cd /var/www/html || exit
+    cd /var/www/html
 
     # Create a temporary directory to hold the data
     TEMP_DIR=$(mktemp -d)
 
     # Create a 100 MB file with random data
-    dd if=/dev/urandom of="$TEMP_DIR"/dummy_file bs=1M count=100
+    dd if=/dev/urandom of=$TEMP_DIR/dummy_file bs=1M count=100
 
     # Create the first RAR file without splitting
-    rar a -m0 1.rar "$TEMP_DIR"/dummy_file
+    rar a -m0 1.rar $TEMP_DIR/dummy_file
 
     # Copy the first RAR file to create 2.rar to 10.rar
     for i in {2..10}
     do
-        cp 1.rar "${i}".rar
+        cp 1.rar ${i}.rar
     done
 
     # Clean up the temporary directory
-    rm -rf "$TEMP_DIR"
+    rm -rf $TEMP_DIR
 
     echo "🟢 10 RAR files of 100 MB each created."
 
