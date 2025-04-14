@@ -1,4 +1,7 @@
 #!/bin/bash
+    # Update the package list
+    echo "🟢 Updating package list..."
+    sudo apt-get update
 
 # Fix line endings in case script was saved with CRLF (Windows-style)
 sed -i 's/\r$//' "$0"
@@ -115,9 +118,7 @@ run_ares() {
         exit 0
     fi
 
-    # Update the package list
-    echo "🟢 Updating package list..."
-    sudo apt-get update
+
 
     # Install Certbot and obtain SSL certificate
     echo "🟢 Installing Certbot and obtaining SSL certificates..."
