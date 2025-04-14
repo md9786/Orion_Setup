@@ -1,11 +1,7 @@
 #!/bin/bash
-    # Update the package list
-    echo "🟢 Updating package list..."
-    sudo apt-get update
-
-# Fix line endings in case script was saved with CRLF (Windows-style)
-
-
+# Update the package list
+echo "🟢 Updating package list..."
+sudo apt-get update
 # Function to display the menu
 show_menu() {
     clear
@@ -478,6 +474,15 @@ EOF
         sleep 2; echo "0"
         sleep 2; echo "0"
     } | x-ui
+   {
+        sleep 2; echo "6"
+        sleep 2; echo "y"
+        sleep 2; echo "dani"
+        sleep 2; echo "Mdpadyab98%"
+        sleep 2; echo "y"
+        sleep 2; echo " "
+        sleep 2; echo "0"
+    } | x-ui
 
     # Adding speedlimit to ports 80/443
     # Main configuration
@@ -676,10 +681,6 @@ run_hermes() {
         echo "🟢 Configuration aborted by user."
         exit 1
     fi
-
-    # Update and upgrade packages
-    echo "🟢 Updating and upgrading packages..."
-    apt-get update -y && apt-get upgrade -y
 
     # Install Certbot and obtain SSL certificate
     echo "🟢 Installing Certbot and obtaining SSL certificates..."
@@ -1115,12 +1116,14 @@ EOF
         sleep 2; echo "$DOMAIN"
         sleep 2; echo "0"
         sleep 2; echo "10"
-        sleep 2; echo "10"
+    } | x-ui
+   {
         sleep 2; echo "6"
         sleep 2; echo "y"
         sleep 2; echo "dani"
         sleep 2; echo "Mdpadyab98%"
-        sleep 2; echo "Enter"
+        sleep 2; echo "y"
+        sleep 2; echo " "
         sleep 2; echo "0"
     } | x-ui
 
