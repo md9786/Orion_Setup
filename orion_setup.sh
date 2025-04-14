@@ -474,6 +474,7 @@ EOF
         sleep 2; echo "0"
         sleep 2; echo "0"
     } | x-ui
+    sleep 5
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
@@ -1117,7 +1118,7 @@ EOF
         sleep 2; echo "0"
         sleep 2; echo "10"
     } | x-ui
-    sleep 10
+    sleep 5
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
