@@ -474,6 +474,7 @@ EOF
         sleep 2; echo "0"
         sleep 2; echo "0"
     } | x-ui
+     sleep 5
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
