@@ -724,6 +724,10 @@ run_hermes() {
     # Edit the temporary file
     sudo sed -i '/^DNS = /d' "$TMP_PROXY_CONF"
     sudo sed -i "/^\[Interface\]\$/a DNS = $IPV4,$IPV6" "$TMP_PROXY_CONF"
+    # Edit the temporary file - set MTU to fixed 1280
+    sudo sed -i '/^MTU = /d' "$TMP_PROXY_CONF"
+    sudo sed -i "/^\[Interface\]\$/a MTU = 1280" "$TMP_PROXY_CONF"
+
     
     # Replace the original file
     sudo cp "$TMP_PROXY_CONF" /etc/wireguard/proxy.conf
