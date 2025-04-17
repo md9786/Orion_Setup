@@ -743,7 +743,7 @@ run_hermes() {
     echo "🟢 A backup of the original file was saved as /etc/wireguard/proxy.conf.bak"
 
     # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
-    CRON_JOB="0 */12 * * * systemctl restart wireproxy"
+    CRON_JOB="0 */3 * * * systemctl restart wireproxy"
     if ! crontab -l | grep -qF "$CRON_JOB"; then
         (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
         echo "🟢 Cron job added successfully:"
@@ -812,7 +812,11 @@ dns:
     - 149.112.112.112
     - 2620:fe::fe
     - 2620:fe::9
-  fallback_dns: []
+  fallback_dns:
+    - 1.1.1.1
+    - 8.8.8.8
+    - 8.8.4.4
+    - 9.9.9.9
   upstream_mode: parallel
   fastest_timeout: 1s
   allowed_clients: []
@@ -857,8 +861,8 @@ dns:
   hostsfile_enabled: true
 tls:
   enabled: true
-  server_name: ""
-  force_https: false
+  server_name: $DOMAIN
+  force_https: true
   port_https: 443
   port_dns_over_tls: 853
   port_dns_over_quic: 853
@@ -970,7 +974,7 @@ whitelist_filters:
     id: 1743772236
 user_rules:
   - '@@||orionnexus.top^'
-  - '@@||mpic.lol^'
+  - '@@||Mpic.php^'
 dhcp:
   enabled: false
   interface_name: ""
@@ -1074,7 +1078,10 @@ clients:
       ids:
         - 92.61.182.163
       tags: []
-      upstreams: []
+      upstreams:
+        - https://dns.cloudflare.com/dns-query
+        - https://dns.google/dns-query
+        - https://dns.quad9.net/dns-query
       uid: 01960176-09d0-74f3-a890-df7f2f00960b
       upstreams_cache_size: 0
       upstreams_cache_enabled: false
@@ -1105,6 +1112,17 @@ EOF
     sudo mv "$TMP_AGH_CONF" /opt/AdGuardHome/AdGuardHome.yaml
     sudo chown root:root /opt/AdGuardHome/AdGuardHome.yaml
     sudo chmod 644 /opt/AdGuardHome/AdGuardHome.yaml
+
+        # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
+    CRON_JOB="0 5 * * * systemctl restart AdGuardHome.service"
+    if ! crontab -l | grep -qF "$CRON_JOB"; then
+        (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+        echo "🟢 Cron job added successfully:"
+        echo "🟢 $CRON_JOB"
+    else
+        echo "🟢 Cron job already exists:"
+        echo "🟢 $CRON_JOB"
+    fi
 
     # Restart AdGuardHome to apply changes
     sudo systemctl restart AdGuardHome
