@@ -705,7 +705,10 @@ run_hermes() {
     sudo swapon /swapfile
     echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
     cat /etc/fstab  # Check for duplicate entries
-
+   #-------------------------------------------------------------------------------------------------
+    # Warp-proxy commented to use remove (: ' and ' at the end )
+    
+: '
     # Run Warp Proxy installation script
     echo "🟢 Running Warp Proxy installation script..."
     bash <(curl -sSL https://raw.githubusercontent.com/hamid-gh98/x-ui-scripts/main/install_warp_proxy.sh)
@@ -752,7 +755,9 @@ run_hermes() {
         echo "🟢 Cron job already exists:"
         echo "🟢 $CRON_JOB"
     fi
-
+'
+# wire-proxy ccomment ends here |^
+#-------------------------------------------------------------------------------------------------
     # Changing DNS Settings
     echo "🟢 Updating systemd-resolved configuration..."
     sudo cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
