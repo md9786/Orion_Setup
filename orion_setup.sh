@@ -629,10 +629,19 @@ run_hermes() {
         echo "$user_input"
     }
 
-    # Get user inputs
-    echo "🟢 Please provide the following information for configuration:"
-    IPV4=$(prompt_user "Enter your server IPv4 address: " "^([0-9]{1,3}\.){3}[0-9]{1,3}$" "Invalid IPv4 address format. Please try again.")
-    IPV6=$(prompt_user "Enter your server IPv6 address: " "^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$" "Invalid IPv6 address format. Please try again.")
+    # Ask if user wants to install Warp Proxy
+    read -p "🟢 Do you want to install Warp Proxy? (y/n) " -n 1 -r
+    echo ""
+    INSTALL_WARP=$REPLY
+
+    # Get user inputs based on Warp Proxy choice
+    if [[ $INSTALL_WARP =~ ^[Yy]$ ]]; then
+        echo "🟢 Please provide the following information for configuration:"
+        IPV4=$(prompt_user "Enter your server IPv4 address: " "^([0-9]{1,3}\.){3}[0-9]{1,3}$" "Invalid IPv4 address format. Please try again.")
+        IPV6=$(prompt_user "Enter your server IPv6 address: " "^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$" "Invalid IPv6 address format. Please try again.")
+    fi
+
+    # Get domain in both cases
     DOMAIN=$(prompt_user "Enter your full domain (e.g., example.com or sub.example.com): " "^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" "Invalid domain format. Please enter a valid domain like 'example.com' or 'sub.example.com'.")
 
     # Get AdGuard Home credentials
@@ -669,11 +678,14 @@ run_hermes() {
     # Display confirmation
     echo ""
     echo "🟢 Configuration Summary:"
-    echo "IPv4: $IPV4"
-    echo "IPv6: $IPV6"
+    if [[ $INSTALL_WARP =~ ^[Yy]$ ]]; then
+        echo "IPv4: $IPV4"
+        echo "IPv6: $IPV6"
+    fi
     echo "Domain: $DOMAIN"
     echo "AdGuard Home Username: $AGH_USERNAME"
     echo "AdGuard Home Password: ********"
+    echo "Install Warp Proxy: $([[ $INSTALL_WARP =~ ^[Yy]$ ]] && echo "Yes" || echo "No")"
     echo ""
 
     read -p "🟢 Confirm these settings? (y/n) " -n 1 -r
@@ -705,59 +717,52 @@ run_hermes() {
     sudo swapon /swapfile
     echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
     cat /etc/fstab  # Check for duplicate entries
-   #-------------------------------------------------------------------------------------------------
-    # Warp-proxy commented to use remove (: ' and ' at the end )
-    
-: '
-    # Run Warp Proxy installation script
-    echo "🟢 Running Warp Proxy installation script..."
-    bash <(curl -sSL https://raw.githubusercontent.com/hamid-gh98/x-ui-scripts/main/install_warp_proxy.sh)
 
-    # Warp Proxy dns setting - fixed to use a temporary file
-    echo "🟢 setting Warp Proxy dns"
-    if [ ! -f "/etc/wireguard/proxy.conf" ]; then
-        echo "🔴 Error: /etc/wireguard/proxy.conf does not exist."
-        exit 1
+    # Install Warp Proxy if selected
+    if [[ $INSTALL_WARP =~ ^[Yy]$ ]]; then
+        # Run Warp Proxy installation script
+        echo "🟢 Running Warp Proxy installation script..."
+        bash <(curl -sSL https://raw.githubusercontent.com/hamid-gh98/x-ui-scripts/main/install_warp_proxy.sh)
+
+        # Warp Proxy dns setting - fixed to use a temporary file
+        echo "🟢 setting Warp Proxy dns"
+        if [ ! -f "/etc/wireguard/proxy.conf" ]; then
+            echo "🔴 Error: /etc/wireguard/proxy.conf does not exist."
+            exit 1
+        fi
+
+        # Create a temporary file for editing
+        TMP_PROXY_CONF=$(mktemp)
+        sudo cp /etc/wireguard/proxy.conf "$TMP_PROXY_CONF"
+        
+        # Edit the temporary file
+        sudo sed -i '/^DNS = /d' "$TMP_PROXY_CONF"
+        sudo sed -i "/^\[Interface\]\$/a DNS = $IPV4,$IPV6" "$TMP_PROXY_CONF"
+        
+        # Replace the original file
+        sudo cp "$TMP_PROXY_CONF" /etc/wireguard/proxy.conf
+        sudo rm "$TMP_PROXY_CONF"
+        
+        if systemctl is-active --quiet wg-quick@proxy; then
+            sudo systemctl restart wg-quick@proxy
+            sudo systemctl restart wireproxy
+            echo "🟢 WireGuard proxy service restarted."
+        fi
+
+        echo "🟢 proxy.conf has been updated with new DNS settings."
+        echo "🟢 A backup of the original file was saved as /etc/wireguard/proxy.conf.bak"
+
+        # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
+        CRON_JOB="0 */3 * * * systemctl restart wireproxy"
+        if ! crontab -l | grep -qF "$CRON_JOB"; then
+            (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+            echo "🟢 Cron job added successfully:"
+            echo "🟢 $CRON_JOB"
+        else
+            echo "🟢 Cron job already exists:"
+            echo "🟢 $CRON_JOB"
+        fi
     fi
-
-    # Create a temporary file for editing
-    TMP_PROXY_CONF=$(mktemp)
-    sudo cp /etc/wireguard/proxy.conf "$TMP_PROXY_CONF"
-    
-    # Edit the temporary file
-    sudo sed -i '/^DNS = /d' "$TMP_PROXY_CONF"
-    sudo sed -i "/^\[Interface\]\$/a DNS = $IPV4,$IPV6" "$TMP_PROXY_CONF"
-    # Edit the temporary file - set MTU to fixed 1280
-    # sudo sed -i '/^MTU = /d' "$TMP_PROXY_CONF"
-    # sudo sed -i "/^\[Interface\]\$/a MTU = 1280" "$TMP_PROXY_CONF"
-
-    
-    # Replace the original file
-    sudo cp "$TMP_PROXY_CONF" /etc/wireguard/proxy.conf
-    sudo rm "$TMP_PROXY_CONF"
-    
-    if systemctl is-active --quiet wg-quick@proxy; then
-        sudo systemctl restart wg-quick@proxy
-        sudo systemctl restart wireproxy
-        echo "🟢 WireGuard proxy service restarted."
-    fi
-
-    echo "🟢 proxy.conf has been updated with new DNS settings."
-    echo "🟢 A backup of the original file was saved as /etc/wireguard/proxy.conf.bak"
-
-    # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
-    CRON_JOB="0 */3 * * * systemctl restart wireproxy"
-    if ! crontab -l | grep -qF "$CRON_JOB"; then
-        (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-        echo "🟢 Cron job added successfully:"
-        echo "🟢 $CRON_JOB"
-    else
-        echo "🟢 Cron job already exists:"
-        echo "🟢 $CRON_JOB"
-    fi
-'
-# wire-proxy ccomment ends here |^
-#-------------------------------------------------------------------------------------------------
     # Changing DNS Settings
     echo "🟢 Updating systemd-resolved configuration..."
     sudo cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
@@ -824,7 +829,9 @@ dns:
     - 9.9.9.9
   upstream_mode: parallel
   fastest_timeout: 1s
-  allowed_clients: []
+  allowed_clients:
+    - 127.0.0.1
+    - 92.61.182.163
   disallowed_clients:
     - 47.237.111.86
     - 193.163.125.41
