@@ -1146,14 +1146,17 @@ EOF
     # Run 3x-ui installation script
     echo "🟢 Running 3x-ui installation script..."
     bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+    # Run 3x-ui installation script
+    echo "🟢 Running 3x-ui installation script..."
+    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
     {
         sleep 2; echo "18"
         sleep 2; echo "5"
         sleep 2; echo "$DOMAIN"
         sleep 2; echo "0"
-        sleep 2; echo "10"
+        sleep 2; echo "0"
     } | x-ui
-    sleep 5
+     sleep 5
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
