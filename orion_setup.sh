@@ -900,85 +900,121 @@ statistics:
   enabled: true
 filters:
   - enabled: true
-    url: https://adaway.org/hosts.txt
-    name: AdWay
-    id: 1743772218
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt
-    name: AdGuard DNS Popup Hosts filter
-    id: 1743772219
+    url: https://hblock.molinero.dev/hosts
+    name: hblock
+    id: 1744973154
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
     name: AdGuard DNS filter
-    id: 1743772220
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt
-    name: uBlock₀ filters – Badware risks
-    id: 1743772221
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt
-    name: HaGeZi's DynDNS Blocklist
-    id: 1743772222
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt
-    name: HaGeZi's Badware Hoster Blocklist
-    id: 1743772223
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt
-    name: Dandelion Sprout's Anti-Malware List
-    id: 1743772224
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt
-    name: Phishing URL Blocklist (PhishTank and OpenPhish)
-    id: 1743772225
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt
-    name: Perflyst and Dandelion Sprout's Smart-TV Blocklist
-    id: 1743772226
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt
-    name: HaGeZi's Windows/Office Tracker Blocklist
-    id: 1743772227
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt
-    name: Dandelion Sprout's Game Console Adblock List
-    id: 1743772228
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt
-    name: Dandelion Sprout's Anti Push Notifications
-    id: 1743772229
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt
-    name: Steven Black's List
-    id: 1743772230
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
-    name: Peter Lowe's Blocklist
-    id: 1743772231
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_49.txt
-    name: HaGeZi's Ultimate Blocklist
-    id: 1743772232
-  - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt
-    name: OISD Blocklist Big
-    id: 1743772233
+    id: 1744973155
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt
     name: AWAvenue Ads Rule
-    id: 1743772234
+    id: 1744973156
   - enabled: true
-    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
-    name: Malicious URL Blocklist (URLHaus)
-    id: 1743772235
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt
+    name: AdGuard DNS Popup Hosts filter
+    id: 1744973157
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt
+    name: HaGeZi's Pro++ Blocklist
+    id: 1744973158
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt
+    name: HaGeZi's Badware Hoster Blocklist
+    id: 1744973159
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt
+    name: Dandelion Sprout's Anti-Malware List
+    id: 1744973160
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt
+    name: Phishing URL Blocklist (PhishTank and OpenPhish)
+    id: 1744973161
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_19.txt
     name: 'IRN: PersianBlocker list'
-    id: 1744143029
+    id: 1744973162
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt
+    name: Perflyst and Dandelion Sprout's Smart-TV Blocklist
+    id: 1744973163
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt
+    name: HaGeZi's Windows/Office Tracker Blocklist
+    id: 1744973164
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_45.txt
+    name: HaGeZi's Allowlist Referral
+    id: 1744973165
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt
+    name: Dan Pollock's List
+    id: 1744973166
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt
+    name: Stalkerware Indicators List
+    id: 1744973167
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt
+    name: ShadowWhisperer's Malware List
+    id: 1744973168
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt
+    name: Scam Blocklist by DurableNapkin
+    id: 1744973169
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt
     name: Phishing Army
-    id: 1744143030
+    id: 1744973170
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt
+    name: NoCoin Filter List
+    id: 1744973171
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
+    name: HaGeZi's Threat Intelligence Feeds
+    id: 1744973172
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_56.txt
+    name: HaGeZi's The World's Most Abused TLDs
+    id: 1744973173
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt
+    name: HaGeZi's DynDNS Blocklist
+    id: 1744973174
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
+    name: Malicious URL Blocklist (URLHaus)
+    id: 1744973175
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt
+    name: uBlock₀ filters – Badware risks
+    id: 1744973176
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt
+    name: Dandelion Sprout's Game Console Adblock List
+    id: 1744973177
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt
+    name: Dandelion Sprout's Anti Push Notifications
+    id: 1744973178
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt
+    name: Steven Black's List
+    id: 1744973179
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
+    name: Peter Lowe's Blocklist
+    id: 1744973180
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt
+    name: OISD Blocklist Big
+    id: 1744973181
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt
+    name: The Big List of Hacked Malware Web Sites
+    id: 1744973182
 whitelist_filters:
   - enabled: true
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/whitelist-urlshortener.txt
@@ -987,6 +1023,23 @@ whitelist_filters:
 user_rules:
   - '@@||orionnexus.top^'
   - '@@||Mpic.php^'
+  - '@@||soundcloud.com^$important'
+  - '!------------------------------------'
+  - '||easybrain.com^'
+  - '||adservice.google.*^$important'
+  - '||adsterra.com^$important'
+  - '||amplitude.com^$important'
+  - '||analytics.edgekey.net^$important'
+  - '||analytics.twitter.com^$important'
+  - '||app.adjust.*^$important'
+  - '||app.*.adjust.com^$important'
+  - '||app.appsflyer.com^$important'
+  - '||doubleclick.net^$important'
+  - '||googleadservices.com^$important'
+  - '||guce.advertising.com^$important'
+  - '||metric.gstatic.com^$important'
+  - '||mmstat.com^$important'
+  - '||statcounter.com^$important'
 dhcp:
   enabled: false
   interface_name: ""
@@ -1091,9 +1144,11 @@ clients:
         - 92.61.182.163
       tags: []
       upstreams:
-        - https://dns.cloudflare.com/dns-query
-        - https://dns.google/dns-query
-        - https://dns.quad9.net/dns-query
+        - 1.1.1.1
+        - 1.0.0.1
+        - 8.8.8.8
+        - 8.8.4.4
+        - 9.9.9.9
       uid: 01960176-09d0-74f3-a890-df7f2f00960b
       upstreams_cache_size: 0
       upstreams_cache_enabled: false
