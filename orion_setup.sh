@@ -1228,6 +1228,21 @@ EOF
     echo -e "${GREEN}Admin credentials:${NC}"
     echo -e "${GREEN}Username: $AGH_USERNAME${NC}"
     echo -e "${GREEN}Password: ********${NC}"
+    # Changing DNS Settings
+    # Backup the original resolved.conf file
+    sudo cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
+
+    # Create the new configuration
+    sudo bash -c "cat > /etc/systemd/resolved.conf << EOF
+[Resolve]
+DNS=127.0.0.1
+Domains=~.
+DNSStubListener=no
+EOF"
+    # Restart the systemd-resolved service to apply changes
+    sudo systemctl restart systemd-resolved
+    echo "🟢 resolved.conf has been updated and the service has been restarted."
+    echo "🟢 A backup of the original file was saved as /etc/systemd/resolved.conf.bak"
 }
 
 # Function to configure swap memory
