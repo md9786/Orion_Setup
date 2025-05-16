@@ -194,7 +194,6 @@ EOF"
 
     # Create the upload script
     sudo tee /root/upload.sh >/dev/null <<'EOF'
-#!/bin/bash
 
 echo "🟢 Monitoring network traffic..."
 
@@ -493,7 +492,6 @@ EOF
 
     # Create the traffic control script
     sudo tee $SCRIPT_PATH > /dev/null <<EOF
-#!/bin/bash
 
 IFACE="$IFACE"
 RATE="$RATE"
