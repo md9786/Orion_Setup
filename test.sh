@@ -28,7 +28,7 @@ show_domestic_components() {
     echo "║ 1. Basic Packages (vnstat, jq, bc, etc.)   ║"
     echo "║ 2. Certbot and SSL Certificates            ║"
     echo "║ 3. DNS Configuration                       ║"
-    echo "║ 4. Nginx with Sample Files                 ║"
+    echo "║ 4. Configure Nginx,FakeuploadFiles,homepage║"
     echo "║ 5. Traffic Limiter                         ║"
     echo "║ 6. 3x-ui Panel                             ║"
     echo "║ 7. Upload Monitoring Script                ║"
@@ -186,7 +186,7 @@ EOF"
 
 # Function to configure nginx with sample files
 install_nginx() {
-    echo "🟢 Configuring nginx with sample files..."
+    echo "🟢 Configuring nginx with fake upload files..."
     cd /var/www/html
     TEMP_DIR=$(mktemp -d)
     dd if=/dev/urandom of=$TEMP_DIR/dummy_file bs=1M count=100
@@ -195,10 +195,10 @@ install_nginx() {
         cp 1.rar ${i}.rar
     done
     rm -rf $TEMP_DIR
-
+echo "🟢 Configure default nginx page"
     # Configure default nginx page
     FILE_PATH="/var/www/html/index.nginx-debian.html"
-    NEW_CONTENT='<!DOCTYPE html>
+      NEW_CONTENT='<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -393,6 +393,8 @@ install_nginx() {
         echo "🔴 Error: $FILE_PATH does not exist."
         exit 1
     fi
+
+}
 
 # Function to install traffic limiter
 install_traffic_limiter() {
@@ -599,7 +601,7 @@ install_warp() {
 
 # Function to install AdGuard Home
 install_adguard() {
-       echo "🟢 Running AdGuard home installation script..."
+   echo "🟢 Running AdGuard home installation script..."
     curl -s -S -L https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/scripts/install.sh | sh -s -- -v
 
     echo "🟢 configuring AdGuard home settings"
