@@ -2,8 +2,26 @@
 # Update the package list
 echo "🟢 Updating package list..."
 apt-get update -y && apt-get upgrade -y
-# Function to display the menu
-show_menu() {
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+# Global variables
+DOMAIN=""
+IPV4=""
+IFACE=""
+RATE=""
+MB_RATE=""
+XUI_USERNAME=""
+XUI_PASSWORD=""
+AGH_USERNAME=""
+AGH_PASSWORD=""
+AGH_PASSWORD_HASH=""
+
+# Function to display the main menu
+show_main_menu() {
     clear
     echo " .d88888b.          d8b                         888     888 8888888b.  888b    888 "
     echo "d88P^ ^Y88b         Y8P                         888     888 888   Y88b 8888b   888 "
@@ -17,61 +35,129 @@ show_menu() {
     echo "╔════════════════════════════════════════════╗"
     echo "║           Server Setup Menu                ║"
     echo "╠════════════════════════════════════════════╣"
-    echo "║ 1. Domestic Server Setup (Blue)            ║"
-    echo "║ 2. Foreign Server Setup (Purple)           ║"
+    echo "║ 1. Domestic Server Setup                   ║"
+    echo "║ 2. Foreign Server Setup                    ║"
+    echo "║ 3. Choose Packages to install              ║"
     echo "║ 0. Exit                                    ║"
     echo "╚════════════════════════════════════════════╝"
-    echo ""
-    read -p "Enter your choice (0-2): " choice
 }
 
-# Function to run Ares server setup
-run_ares() {
-    echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
-    echo "| Domestic server setup|🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵|"
-    echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
-    # Set Timezone
-    sudo timedatectl set-timezone Asia/Tehran
-    echo "🟢 Timezone Set For Tehran/Asia"
+# Function to display the package menu
+show_package_menu() {
+    clear
+    echo "╔════════════════════════════════════════════╗"
+    echo "║           Package Installation Menu        ║"
+    echo "╠════════════════════════════════════════════╣"
+    echo "║ 1. Set Timezone                            ║"
+    echo "║ 2. Install Certbot & SSL Certificate       ║"
+    echo "║ 3. Install Basic Packages (vnstat, etc)    ║"
+    echo "║ 4. Configure DNS Settings                  ║"
+    echo "║ 5. Create Dummy Files and upload script    ║"
+    echo "║    and configure Nginx homepage            ║"
+    echo "║ 6. Install and Configure 3x-ui             ║"
+    echo "║ 7. Configure Traffic Control               ║"
+    echo "║ 8. Install AdGuard Home                    ║"
+    echo "║ 9. Configure Swap Memory                   ║"
+    echo "║ 0. Return to Main Menu                     ║"
+    echo "╚════════════════════════════════════════════╝"
+}
 
-    # Function to detect available network interfaces
-    detect_interfaces() {
-        interfaces=($(ip -o link show | awk -F': ' '{print $2}' | grep -v lo))
-        if [ ${#interfaces[@]} -eq 0 ]; then
-            echo "🔴 No network interfaces found!"
-            exit 1
+# Function to detect available network interfaces
+detect_interfaces() {
+    interfaces=($(ip -o link show | awk -F': ' '{print $2}' | grep -v lo))
+    if [ ${#interfaces[@]} -eq 0 ]; then
+        echo -e "${RED}No network interfaces found!${NC}"
+        exit 1
+    fi
+    echo "${interfaces[@]}"
+}
+
+# Function to get 3x-ui credentials
+get_xui_credentials() {
+    echo -e "${GREEN}3x-ui Panel Configuration${NC}"
+    read -p "Enter username for 3x-ui (default: admin): " XUI_USERNAME
+    XUI_USERNAME=${XUI_USERNAME:-admin}
+    
+    while true; do
+        read -s -p "Enter password for 3x-ui: " XUI_PASSWORD
+        echo
+        if [ -z "$XUI_PASSWORD" ]; then
+            echo -e "${RED}Password cannot be empty. Please try again.${NC}"
+        else
+            read -s -p "Confirm password: " XUI_PASSWORD_CONFIRM
+            echo
+            if [ "$XUI_PASSWORD" != "$XUI_PASSWORD_CONFIRM" ]; then
+                echo -e "${RED}Passwords do not match. Please try again.${NC}"
+            else
+                break
+            fi
         fi
-        echo "${interfaces[@]}"
-    }
+    done
+}
 
-    # Collect required information at the start
-    echo "🟢 Starting server setup. Please provide the following information:"
+# Function to get AdGuard Home credentials
+get_agh_credentials() {
+    echo -e "${GREEN}AdGuard Home Configuration${NC}"
+    read -p "Enter username for AdGuard Home (default: admin): " AGH_USERNAME
+    AGH_USERNAME=${AGH_USERNAME:-admin}
+    
+    while true; do
+        read -s -p "Enter password for AdGuard Home: " AGH_PASSWORD
+        echo
+        if [ -z "$AGH_PASSWORD" ]; then
+            echo -e "${RED}Password cannot be empty. Please try again.${NC}"
+        else
+            read -s -p "Confirm password: " AGH_PASSWORD_CONFIRM
+            echo
+            if [ "$AGH_PASSWORD" != "$AGH_PASSWORD_CONFIRM" ]; then
+                echo -e "${RED}Passwords do not match. Please try again.${NC}"
+            else
+                break
+            fi
+        fi
+    done
+    
+    # Generate password hash
+    echo -e "${GREEN}Generating password hash...${NC}"
+    if ! command -v htpasswd &> /dev/null; then
+        echo -e "${GREEN}Installing apache2-utils for password hashing...${NC}"
+        apt-get install -y apache2-utils
+    fi
+    AGH_PASSWORD_HASH=$(htpasswd -bnBC 10 "" "$AGH_PASSWORD" | tr -d ':\n' | sed 's/$2y/$2a/')
+    echo -e "${GREEN}Password hash generated.${NC}"
+}
 
-    # Get domain name
+# Function to get common information (domain)
+get_common_info() {
     while [ -z "$DOMAIN" ]; do
         read -p "Enter your domain name (e.g., example.com): " DOMAIN
         if [ -z "$DOMAIN" ]; then
-            echo "🔴 Domain name cannot be empty. Please try again."
+            echo -e "${RED}Domain name cannot be empty. Please try again.${NC}"
         fi
     done
+}
 
+# Function to get domestic server information
+get_domestic_info() {
+    get_common_info
+    
     # Get IPv4 address
     while [ -z "$IPV4" ]; do
         read -p "Enter your DNS server IPv4 address (e.g., 1.1.1.1): " IPV4
         if [ -z "$IPV4" ]; then
-            echo "🔴 IPv4 address cannot be empty. Please try again."
+            echo -e "${RED}IPv4 address cannot be empty. Please try again.${NC}"
         fi
     done
 
     # Network interface selection
-    echo "🟢 Detecting network interfaces..."
+    echo -e "${GREEN}Detecting network interfaces...${NC}"
     interfaces=($(detect_interfaces))
 
     if [ ${#interfaces[@]} -eq 1 ]; then
         IFACE="${interfaces[0]}"
-        echo "🟢 Only one interface found: $IFACE"
+        echo -e "${GREEN}Only one interface found: $IFACE${NC}"
     else
-        echo "🟢 Available network interfaces:"
+        echo -e "${GREEN}Available network interfaces:${NC}"
         for i in "${!interfaces[@]}"; do
             echo "$((i+1)). ${interfaces[$i]}"
         done
@@ -82,7 +168,7 @@ run_ares() {
                 IFACE="${interfaces[$((choice-1))]}"
                 break
             else
-                echo "🟢 Invalid selection. Please try again."
+                echo -e "${YELLOW}Invalid selection. Please try again.${NC}"
             fi
         done
     fi
@@ -93,47 +179,114 @@ run_ares() {
         if [[ "$MB_RATE" =~ ^[0-9]+$ ]]; then
             # Convert MB/s to mbit (1 byte = 8 bits)
             RATE="$((MB_RATE * 8))mbit"
-            echo "🟢 Set rate limit: ${MB_RATE}MB/s (converted to ${RATE} for traffic control)"
+            echo -e "${GREEN}Set rate limit: ${MB_RATE}MB/s (converted to ${RATE} for traffic control)${NC}"
             break
         else
-            echo "🔴 Invalid input. Please enter a number (e.g., 10 for 10MB/s)."
+            echo -e "${RED}Invalid input. Please enter a number (e.g., 10 for 10MB/s).${NC}"
         fi
     done
 
+    get_xui_credentials
+    
     # Confirm settings
-    echo "🟢"
-    echo "🟢 Configuration Summary:"
-    echo "🟢 Domain: $DOMAIN"
-    echo "🟢 DNS IPv4: $IPV4"
-    echo "🟢 Network Interface: $IFACE"
-    echo "🟢 Rate Limit: ${MB_RATE}MB/s (${RATE})"
-    echo "🟢"
+    echo -e "${GREEN}"
+    echo "Configuration Summary:"
+    echo "Domain: $DOMAIN"
+    echo "DNS IPv4: $IPV4"
+    echo "Network Interface: $IFACE"
+    echo "Rate Limit: ${MB_RATE}MB/s (${RATE})"
+    echo "3x-ui Username: $XUI_USERNAME"
+    echo -e "${NC}"
     read -p "Continue with setup? (y/n): " confirm
     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-        echo "🔴 Setup aborted."
+        echo -e "${RED}Setup aborted.${NC}"
         exit 0
     fi
+}
 
+# Function to get foreign server information
+get_foreign_info() {
+    get_common_info
+    get_agh_credentials
+    get_xui_credentials
+    
+    # Confirm settings
+    echo -e "${GREEN}"
+    echo "Configuration Summary:"
+    echo "Domain: $DOMAIN"
+    echo "AdGuard Home Username: $AGH_USERNAME"
+    echo "3x-ui Username: $XUI_USERNAME"
+    echo -e "${NC}"
+    read -p "Continue with setup? (y/n): " confirm
+    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+        echo -e "${RED}Setup aborted.${NC}"
+        exit 0
+    fi
+}
 
+# Function to set timezone
+set_timezone() {
+    echo -e "${GREEN}Setting Timezone to Asia/Tehran...${NC}"
+    sudo timedatectl set-timezone Asia/Tehran
+    echo -e "${GREEN}Timezone Set For Tehran/Asia${NC}"
+}
 
-    # Install Certbot and obtain SSL certificate
-    echo "🟢 Installing Certbot and obtaining SSL certificates..."
+# Function to install Certbot and get SSL certificate
+install_certbot() {
+    if [ -z "$DOMAIN" ]; then
+        get_common_info
+    fi
+    
+    echo -e "${GREEN}Installing Certbot and obtaining SSL certificates...${NC}"
     apt-get install certbot -y
     mkdir -p "/root/cert/$DOMAIN"
     certbot certonly --standalone --agree-tos --register-unsafely-without-email -d "$DOMAIN"
     certbot renew --dry-run
 
-    # Create symlinks for certificate files in the expected location
-    echo "🟢 Creating certificate symlinks..."
+    echo -e "${GREEN}Creating certificate symlinks...${NC}"
     ln -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "/root/cert/$DOMAIN/fullchain.pem"
     ln -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "/root/cert/$DOMAIN/privkey.pem"
-    echo "🟢 Created certificate symlinks..."
+    echo -e "${GREEN}Created certificate symlinks...${NC}"
+}
 
-    # Install required packages
-    echo "🟢 Installing vnstat, jq, bc, nginx, and rar..."
+# Function to install basic packages
+install_basic_packages() {
+    echo -e "${GREEN}Installing vnstat, jq, bc, nginx, and rar...${NC}"
     sudo apt-get install -y vnstat jq bc nginx rar
 
-    # Changing DNS Settings
+    # Enable and start the vnstat service
+    echo -e "${GREEN}Enabling and starting vnstat service...${NC}"
+    sudo systemctl enable vnstat
+    sudo systemctl start vnstat
+
+    # Enable and start the nginx service
+    echo -e "${GREEN}Enabling and starting nginx service...${NC}"
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
+
+    # Verify installations
+    echo -e "${GREEN}Verifying installations...${NC}"
+    if command -v vnstat &> /dev/null && command -v jq &> /dev/null && command -v bc &> /dev/null && command -v nginx &> /dev/null && command -v rar &> /dev/null
+    then
+        echo -e "${GREEN}All required applications installed successfully.${NC}"
+    else
+        echo -e "${RED}One or more applications failed to install. Please check the output for errors.${NC}"
+        exit 1
+    fi
+}
+
+# Function to configure DNS settings
+configure_dns() {
+    if [ -z "$IPV4" ]; then
+        while [ -z "$IPV4" ]; do
+            read -p "Enter your DNS server IPv4 address (e.g., 1.1.1.1): " IPV4
+            if [ -z "$IPV4" ]; then
+                echo -e "${RED}IPv4 address cannot be empty. Please try again.${NC}"
+            fi
+        done
+    fi
+    
+    echo -e "${GREEN}Changing DNS Settings...${NC}"
     # Backup the original resolved.conf file
     sudo cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
 
@@ -146,29 +299,13 @@ EOF"
     # Restart the systemd-resolved service to apply changes
     sudo systemctl restart systemd-resolved
 
-    echo "🟢 resolved.conf has been updated and the service has been restarted."
-    echo "🟢 A backup of the original file was saved as /etc/systemd/resolved.conf.bak"
+    echo -e "${GREEN}resolved.conf has been updated and the service has been restarted.${NC}"
+    echo -e "${GREEN}A backup of the original file was saved as /etc/systemd/resolved.conf.bak${NC}"
+}
 
-    # Enable and start the vnstat service
-    echo "🟢 Enabling and starting vnstat service..."
-    sudo systemctl enable vnstat
-    sudo systemctl start vnstat
-
-    # Enable and start the nginx service
-    echo "🟢 Enabling and starting nginx service..."
-    sudo systemctl enable nginx
-    sudo systemctl start nginx
-
-    # Verify installations
-    echo "🟢 Verifying installations..."
-    if command -v vnstat &> /dev/null && command -v jq &> /dev/null && command -v bc &> /dev/null && command -v nginx &> /dev/null && command -v rar &> /dev/null
-    then
-        echo " All required applications installed successfully."
-    else
-        echo " One or more applications failed to install. Please check the output for errors."
-        exit 1
-    fi
-
+# Function to create dummy files
+create_dummy_files() {
+    echo -e "${GREEN}Creating dummy files...${NC}"
     # Navigate to the target directory
     cd /var/www/html
 
@@ -190,80 +327,9 @@ EOF"
     # Clean up the temporary directory
     rm -rf $TEMP_DIR
 
-    echo "🟢 10 RAR files of 100 MB each created."
+    echo -e "${GREEN}10 RAR files of 100 MB each created.${NC}"
 
-    # Create the upload script
-    sudo tee /root/upload.sh >/dev/null <<'EOF'
-
-echo "🟢 Monitoring network traffic..."
-
-# Get network traffic data
-traffic=$(vnstat --json)
-
-# Extract total received and transmitted bytes
-upload=$(echo "$traffic" | jq -r '.interfaces[0].traffic.total.tx')
-download=$(echo "$traffic" | jq -r '.interfaces[0].traffic.total.rx')
-
-# Convert bytes to gigabytes
-upload_gb=$(echo "scale=2; $upload / 1073741824" | bc)
-download_gb=$(echo "scale=2; $download / 1073741824" | bc)
-
-# Debugging: Print extracted values
-echo "🟢 Extracted upload: $upload bytes ($upload_gb GB), Extracted download: $download bytes ($download_gb GB)"
-
-# Handle null values by providing a default of 0
-upload=${upload:-0}
-download=${download:-0}
-
-# Ensure that upload and download are numbers before comparison
-if [[ "$upload" =~ ^[0-9]+$ ]] && [[ "$download" =~ ^[0-9]+$ ]]; then
-    echo "🟢 Upload: $upload_gb GB, Download: $download_gb GB"
-
-    # Check if upload is less than 3.56894 times the download
-    comparison_result=$(echo "$upload_gb < 3.56894 * $download_gb" | bc)
-    if [ "$comparison_result" -eq 1 ]; then
-        echo " Upload is less than 3.56894 times the download. Initiating action..."
-
-        # Number of repetitions
-        repetitions=5
-
-        # Curl commands to choose from
-        curl_commands=("timeout 30 curl \"https://orionupload.ir/orion.php?action=start\""
-                       "timeout 30 curl \"https://orioni.ir/orion.php?action=start\""
-                       "timeout 30 curl \"https://mdpadyab.ir/orion.php?action=start\"")
-
-        for ((i=0; i<$repetitions; i++)); do
-            # Randomly select a curl command
-            selected_command=$(shuf -n 1 -e "${curl_commands[@]}")
-            echo " Using command: $selected_command"
-            eval $selected_command
-
-            # Check the exit status of the timeout command
-            if [ $? -eq 124 ]; then
-                echo " The curl command timed out after 30 seconds."
-            else
-                echo " The curl command completed before timing out."
-            fi
-        done
-        echo " Action completed."
-    else
-        # If upload is 3.56894 times the download or higher, show message and exit
-        echo " All good! Upload is 3.56894 times the download or higher. Exiting..."
-    fi
-else
-    echo "🔴 Failed to extract valid upload and download values. Exiting..."
-fi
-EOF
-
-    # Set permissions
-    sudo chmod +x /upload.sh
-
-    # Add to root's crontab
-    sudo bash -c 'echo "*/5 * * * * /upload.sh >/dev/null 2>&1" >> /etc/crontab'
-
-    echo "🟢 upload.sh has been successfully created in / directory"
-
-    # Define the path to the file
+ # Define the path to the file
     FILE_PATH="/var/www/html/index.nginx-debian.html"
 
     # Define the new content using a heredoc
@@ -463,8 +529,93 @@ EOF
         exit 1
     fi
 
-    # Run 3x-ui installation script
-    echo "🟢 Running 3x-ui installation script..."
+    # Create the upload script
+    sudo tee /root/upload.sh >/dev/null <<'EOF'
+
+echo "🟢 Monitoring network traffic..."
+
+# Get network traffic data
+traffic=$(vnstat --json)
+
+# Extract total received and transmitted bytes
+upload=$(echo "$traffic" | jq -r '.interfaces[0].traffic.total.tx')
+download=$(echo "$traffic" | jq -r '.interfaces[0].traffic.total.rx')
+
+# Convert bytes to gigabytes
+upload_gb=$(echo "scale=2; $upload / 1073741824" | bc)
+download_gb=$(echo "scale=2; $download / 1073741824" | bc)
+
+# Debugging: Print extracted values
+echo "🟢 Extracted upload: $upload bytes ($upload_gb GB), Extracted download: $download bytes ($download_gb GB)"
+
+# Handle null values by providing a default of 0
+upload=${upload:-0}
+download=${download:-0}
+
+# Ensure that upload and download are numbers before comparison
+if [[ "$upload" =~ ^[0-9]+$ ]] && [[ "$download" =~ ^[0-9]+$ ]]; then
+    echo "🟢 Upload: $upload_gb GB, Download: $download_gb GB"
+
+    # Check if upload is less than 3.56894 times the download
+    comparison_result=$(echo "$upload_gb < 3.56894 * $download_gb" | bc)
+    if [ "$comparison_result" -eq 1 ]; then
+        echo " Upload is less than 3.56894 times the download. Initiating action..."
+
+        # Number of repetitions
+        repetitions=5
+
+        # Curl commands to choose from
+        curl_commands=("timeout 30 curl \"https://orionupload.ir/orion.php?action=start\""
+                       "timeout 30 curl \"https://orioni.ir/orion.php?action=start\""
+                       "timeout 30 curl \"https://mdpadyab.ir/orion.php?action=start\"")
+
+        for ((i=0; i<$repetitions; i++)); do
+            # Randomly select a curl command
+            selected_command=$(shuf -n 1 -e "${curl_commands[@]}")
+            echo " Using command: $selected_command"
+            eval $selected_command
+
+            # Check the exit status of the timeout command
+            if [ $? -eq 124 ]; then
+                echo " The curl command timed out after 30 seconds."
+            else
+                echo " The curl command completed before timing out."
+            fi
+        done
+        echo " Action completed."
+    else
+        # If upload is 3.56894 times the download or higher, show message and exit
+        echo " All good! Upload is 3.56894 times the download or higher. Exiting..."
+    fi
+else
+    echo "🔴 Failed to extract valid upload and download values. Exiting..."
+fi
+EOF
+
+    # Set permissions
+    sudo chmod +x /upload.sh
+
+    # Add to root's crontab
+    sudo bash -c 'echo "*/5 * * * * /upload.sh >/dev/null 2>&1" >> /etc/crontab'
+
+    echo "🟢 upload.sh has been successfully created in / directory"
+
+
+
+    
+}
+
+# Function to install and configure 3x-ui
+install_3xui() {
+    if [ -z "$XUI_USERNAME" ] || [ -z "$XUI_PASSWORD" ]; then
+        get_xui_credentials
+    fi
+    
+    if [ -z "$DOMAIN" ]; then
+        get_common_info
+    fi
+    
+    echo -e "${GREEN}Running 3x-ui installation script...${NC}"
     bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
     {
         sleep 2; echo "18"
@@ -477,14 +628,55 @@ EOF
    {
         sleep 2; echo "6"
         sleep 2; echo "y"
-        sleep 2; echo "dani"
-        sleep 2; echo "Mdpadyab98%"
+        sleep 2; echo "$XUI_USERNAME"
+        sleep 2; echo "$XUI_PASSWORD"
         sleep 2; echo "y"
         sleep 2; echo " "
         sleep 2; echo "0"
     } | x-ui
+}
 
-    # Adding speedlimit to ports 80/443
+# Function to configure traffic control
+configure_traffic_control() {
+    if [ -z "$IFACE" ]; then
+        echo -e "${GREEN}Detecting network interfaces...${NC}"
+        interfaces=($(detect_interfaces))
+
+        if [ ${#interfaces[@]} -eq 1 ]; then
+            IFACE="${interfaces[0]}"
+            echo -e "${GREEN}Only one interface found: $IFACE${NC}"
+        else
+            echo -e "${GREEN}Available network interfaces:${NC}"
+            for i in "${!interfaces[@]}"; do
+                echo "$((i+1)). ${interfaces[$i]}"
+            done
+            
+            while true; do
+                read -p "Select interface for traffic control (1-${#interfaces[@]}): " choice
+                if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le ${#interfaces[@]} ]; then
+                    IFACE="${interfaces[$((choice-1))]}"
+                    break
+                else
+                    echo -e "${YELLOW}Invalid selection. Please try again.${NC}"
+                fi
+            done
+        fi
+    fi
+    
+    if [ -z "$MB_RATE" ] || [ -z "$RATE" ]; then
+        while true; do
+            read -p "Enter rate limit in MB/s for ports 80/443 (e.g., 10 for 10MB/s): " MB_RATE
+            if [[ "$MB_RATE" =~ ^[0-9]+$ ]]; then
+                # Convert MB/s to mbit (1 byte = 8 bits)
+                RATE="$((MB_RATE * 8))mbit"
+                echo -e "${GREEN}Set rate limit: ${MB_RATE}MB/s (converted to ${RATE} for traffic control)${NC}"
+                break
+            else
+                echo -e "${RED}Invalid input. Please enter a number (e.g., 10 for 10MB/s).${NC}"
+            fi
+        done
+    fi
+    
     # Main configuration
     SERVICE_NAME="traffic-limiter"
     SCRIPT_PATH="/usr/local/bin/traffic_control.sh"
@@ -492,6 +684,7 @@ EOF
 
     # Create the traffic control script
     sudo tee $SCRIPT_PATH > /dev/null <<EOF
+#!/bin/bash
 
 IFACE="$IFACE"
 RATE="$RATE"
@@ -501,11 +694,11 @@ SERVICE_NAME="$SERVICE_NAME"
 # Main menu
 while true; do
     echo " "
-    echo "🟢 Traffic Control Menu for \$IFACE"
-    echo "🟢 1. Apply traffic limits (\${MB_RATE}MB/s) (and enable on boot)"
-    echo "🟢 2. Remove traffic limits (and disable on boot)"
-    echo "🟢 3. Check current traffic settings"
-    echo "🔴 0. Exit"
+    echo -e "${GREEN}Traffic Control Menu for \$IFACE${NC}"
+    echo -e "${GREEN}1. Apply traffic limits (\${MB_RATE}MB/s) (and enable on boot)${NC}"
+    echo -e "${GREEN}2. Remove traffic limits (and disable on boot)${NC}"
+    echo -e "${GREEN}3. Check current traffic settings${NC}"
+    echo -e "${RED}0. Exit${NC}"
     echo -n "Select option: "
     read choice
     
@@ -545,13 +738,13 @@ while true; do
             ;;
         3)
             echo " "
-            echo "🟢 Current qdisc:"
+            echo -e "${GREEN}Current qdisc:${NC}"
             tc qdisc show dev \$IFACE
             echo " "
-            echo "🟢 Current classes:"
+            echo -e "${GREEN}Current classes:${NC}"
             tc class show dev \$IFACE
             echo " "
-            echo "🟢 Current filters:"
+            echo -e "${GREEN}Current filters:${NC}"
             tc filter show dev \$IFACE
             ;;
         0)
@@ -589,195 +782,36 @@ EOF
     # Reload systemd
     sudo systemctl daemon-reload
 
-    echo "🟢 Setup completed successfully!"
-    echo "🟢 You can now control traffic with:"
-    echo "🟢   traffic-limiter         # Interactive menu"
-    echo "🟢   systemctl start traffic-limiter"
-    echo "🟢   systemctl stop traffic-limiter"
+    {
+        sleep 2; echo "1"
+        sleep 2; echo "3"
+        sleep 2; echo "0"
+    } | traffic-limiter
+
+    echo -e "${GREEN}Setup completed successfully!${NC}"
+    echo -e "${GREEN}You can now control traffic with:${NC}"
+    echo -e "${GREEN}  traffic-limiter         # Interactive menu${NC}"
+    echo -e "${GREEN}  systemctl start traffic-limiter${NC}"
+    echo -e "${GREEN}  systemctl stop traffic-limiter${NC}"
 
     # Run the traffic control command
     $COMMAND_PATH
 }
 
-# Function to run Hermes server setup
-run_hermes() {
-    echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
-    echo "| Foreign server setup|🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣|"
-    echo "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
+# Function to install AdGuard Home
+install_adguard_home() {
+    if [ -z "$AGH_USERNAME" ] || [ -z "$AGH_PASSWORD" ]; then
+        get_agh_credentials
+    fi
     
-    # Set Timezone
-    sudo timedatectl set-timezone Asia/Tehran
-    echo "🟢 Timezone Set For Tehran/Asia"
-
-    # Function to prompt user for input with validation
-    prompt_user() {
-        local prompt_message=$1
-        local validation_pattern=$2
-        local error_message=$3
-        local user_input=""
-        
-        while true; do
-            read -p "$prompt_message" user_input
-            if [[ $user_input =~ $validation_pattern ]]; then
-                break
-            else
-                echo "$error_message"
-            fi
-        done
-        echo "$user_input"
-    }
-
-    # Ask if user wants to install Warp Proxy
-    read -p "🟢 Do you want to install Warp Proxy? (y/n) " -n 1 -r
-    echo ""
-    INSTALL_WARP=$REPLY
-
-    # Get user inputs based on Warp Proxy choice
-    if [[ $INSTALL_WARP =~ ^[Yy]$ ]]; then
-        echo "🟢 Please provide the following information for configuration:"
-        IPV4=$(prompt_user "Enter your server IPv4 address: " "^([0-9]{1,3}\.){3}[0-9]{1,3}$" "Invalid IPv4 address format. Please try again.")
-        IPV6=$(prompt_user "Enter your server IPv6 address: " "^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$" "Invalid IPv6 address format. Please try again.")
+    if [ -z "$DOMAIN" ]; then
+        get_common_info
     fi
-
-    # Get domain in both cases
-    DOMAIN=$(prompt_user "Enter your full domain (e.g., example.com or sub.example.com): " "^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" "Invalid domain format. Please enter a valid domain like 'example.com' or 'sub.example.com'.")
-
-    # Get AdGuard Home credentials
-    echo ""
-    echo "🟢 Please set AdGuard Home admin credentials:"
-    read -p "Enter username for AdGuard Home (default: admin): " AGH_USERNAME
-    AGH_USERNAME=${AGH_USERNAME:-admin}
     
-    while true; do
-        read -s -p "Enter password for AdGuard Home: " AGH_PASSWORD
-        echo
-        if [ -z "$AGH_PASSWORD" ]; then
-            echo "🔴 Password cannot be empty. Please try again."
-        else
-            read -s -p "Confirm password: " AGH_PASSWORD_CONFIRM
-            echo
-            if [ "$AGH_PASSWORD" != "$AGH_PASSWORD_CONFIRM" ]; then
-                echo "🔴 Passwords do not match. Please try again."
-            else
-                break
-            fi
-        fi
-    done
-
-    # Generate password hash
-    echo "🟢 Generating password hash..."
-    if ! command -v htpasswd &> /dev/null; then
-        echo "🟢 Installing apache2-utils for password hashing..."
-        apt-get install -y apache2-utils
-    fi
-    AGH_PASSWORD_HASH=$(htpasswd -bnBC 10 "" "$AGH_PASSWORD" | tr -d ':\n' | sed 's/$2y/$2a/')
-    echo "🟢 Password hash generated."
-
-    # Display confirmation
-    echo ""
-    echo "🟢 Configuration Summary:"
-    if [[ $INSTALL_WARP =~ ^[Yy]$ ]]; then
-        echo "IPv4: $IPV4"
-        echo "IPv6: $IPV6"
-    fi
-    echo "Domain: $DOMAIN"
-    echo "AdGuard Home Username: $AGH_USERNAME"
-    echo "AdGuard Home Password: ********"
-    echo "Install Warp Proxy: $([[ $INSTALL_WARP =~ ^[Yy]$ ]] && echo "Yes" || echo "No")"
-    echo ""
-
-    read -p "🟢 Confirm these settings? (y/n) " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "🟢 Configuration aborted by user."
-        exit 1
-    fi
-
-    # Install Certbot and obtain SSL certificate
-    echo "🟢 Installing Certbot and obtaining SSL certificates..."
-    apt-get install certbot -y
-    mkdir -p "/root/cert/$DOMAIN"
-    certbot certonly --standalone --agree-tos --register-unsafely-without-email -d "$DOMAIN"
-    certbot renew --dry-run
-
-    # Create symlinks for certificate files in the expected location
-    echo "🟢 Creating certificate symlinks..."
-    ln -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "/root/cert/$DOMAIN/fullchain.pem"
-    ln -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "/root/cert/$DOMAIN/privkey.pem"
-    echo "🟢 Created certificate symlinks..."
-
-    # Configure swap memory
-    echo "🟢 Configuring swap memory..."
-    sudo swapoff -a
-    sudo dd if=/dev/zero of=/swapfile bs=1G count=8
-    sudo chmod 600 /swapfile
-    sudo mkswap /swapfile
-    sudo swapon /swapfile
-    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-    cat /etc/fstab  # Check for duplicate entries
-
-    # Install Warp Proxy if selected
-    if [[ $INSTALL_WARP =~ ^[Yy]$ ]]; then
-        # Run Warp Proxy installation script
-        echo "🟢 Running Warp Proxy installation script..."
-        bash <(curl -sSL https://raw.githubusercontent.com/hamid-gh98/x-ui-scripts/main/install_warp_proxy.sh)
-
-        # Warp Proxy dns setting - fixed to use a temporary file
-        echo "🟢 setting Warp Proxy dns"
-        if [ ! -f "/etc/wireguard/proxy.conf" ]; then
-            echo "🔴 Error: /etc/wireguard/proxy.conf does not exist."
-            exit 1
-        fi
-
-        # Create a temporary file for editing
-        TMP_PROXY_CONF=$(mktemp)
-        sudo cp /etc/wireguard/proxy.conf "$TMP_PROXY_CONF"
-        
-        # Edit the temporary file
-        sudo sed -i '/^DNS = /d' "$TMP_PROXY_CONF"
-        sudo sed -i "/^\[Interface\]\$/a DNS = $IPV4,$IPV6" "$TMP_PROXY_CONF"
-        
-        # Replace the original file
-        sudo cp "$TMP_PROXY_CONF" /etc/wireguard/proxy.conf
-        sudo rm "$TMP_PROXY_CONF"
-        
-        if systemctl is-active --quiet wg-quick@proxy; then
-            sudo systemctl restart wg-quick@proxy
-            sudo systemctl restart wireproxy
-            echo "🟢 WireGuard proxy service restarted."
-        fi
-
-        echo "🟢 proxy.conf has been updated with new DNS settings."
-        echo "🟢 A backup of the original file was saved as /etc/wireguard/proxy.conf.bak"
-
-        # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
-        CRON_JOB="0 */3 * * * systemctl restart wireproxy"
-        if ! crontab -l | grep -qF "$CRON_JOB"; then
-            (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-            echo "🟢 Cron job added successfully:"
-            echo "🟢 $CRON_JOB"
-        else
-            echo "🟢 Cron job already exists:"
-            echo "🟢 $CRON_JOB"
-        fi
-    fi
-    # Changing DNS Settings
-    echo "🟢 Updating systemd-resolved configuration..."
-    sudo cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
-    sudo tee /etc/systemd/resolved.conf > /dev/null <<EOF
-[Resolve]
-DNS=127.0.0.1
-Domains=~.
-DNSStubListener=no
-EOF
-    sudo systemctl restart systemd-resolved
-    echo "🟢 resolved.conf has been updated and the service has been restarted."
-
-    # Install AdGuard Home
-    echo "🟢 Running AdGuard home installation script..."
+    echo -e "${GREEN}Running AdGuard home installation script...${NC}"
     curl -s -S -L https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/scripts/install.sh | sh -s -- -v
 
-    echo "🟢 configuring AdGuard home settings"
+    echo -e "${GREEN}Configuring AdGuard home settings${NC}"
     sudo mkdir -p "/root/cert/$DOMAIN"
     sudo cp /opt/AdGuardHome/AdGuardHome.yaml /opt/AdGuardHome/AdGuardHome.yaml.bak
 
@@ -1178,8 +1212,7 @@ EOF
     sudo chown root:root /opt/AdGuardHome/AdGuardHome.yaml
     sudo chmod 644 /opt/AdGuardHome/AdGuardHome.yaml
 
-        # Add cronjob to restart wire proxy every 12 hours to reduce memory usage
-    CRON_JOB="0 5 * * * systemctl restart AdGuardHome.service"
+       CRON_JOB="0 5 * * * systemctl restart AdGuardHome.service"
     if ! crontab -l | grep -qF "$CRON_JOB"; then
         (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
         echo "🟢 Cron job added successfully:"
@@ -1191,48 +1224,64 @@ EOF
 
     # Restart AdGuardHome to apply changes
     sudo systemctl restart AdGuardHome
-    echo "🟢 AdGuardHome.yaml has been updated and the service has been restarted."
-    echo "🟢 Admin credentials:"
-    echo "🟢 Username: $AGH_USERNAME"
-    echo "🟢 Password: ********"
+    echo -e "${GREEN}AdGuardHome.yaml has been updated and the service has been restarted.${NC}"
+    echo -e "${GREEN}Admin credentials:${NC}"
+    echo -e "${GREEN}Username: $AGH_USERNAME${NC}"
+    echo -e "${GREEN}Password: ********${NC}"
+}
 
-    # Run 3x-ui installation script
-    echo "🟢 Running 3x-ui installation script..."
-    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
-    # Run 3x-ui installation script
-    echo "🟢 Running 3x-ui installation script..."
-    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
-    {
-        sleep 2; echo "18"
-        sleep 2; echo "5"
-        sleep 2; echo "$DOMAIN"
-        sleep 2; echo "0"
-        sleep 2; echo "0"
-    } | x-ui
-     sleep 5
-   {
-        sleep 2; echo "6"
-        sleep 2; echo "y"
-        sleep 2; echo "dani"
-        sleep 2; echo "Mdpadyab98%"
-        sleep 2; echo "y"
-        sleep 2; echo " "
-        sleep 2; echo "0"
-    } | x-ui
+# Function to configure swap memory
+configure_swap_memory() {
+    echo -e "${GREEN}Configuring swap memory...${NC}"
+    sudo swapoff -a
+    sudo dd if=/dev/zero of=/swapfile bs=1G count=8
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    cat /etc/fstab  # Check for duplicate entries
+    echo -e "${GREEN}Swap memory configured successfully.${NC}"
+}
 
+# Function to setup domestic server
+setup_domestic_server() {
+    get_domestic_info
+    
+    # Run all domestic server components in order
+    set_timezone
+    install_certbot
+    install_basic_packages
+    configure_dns
+    create_dummy_files
+    install_3xui
+    configure_traffic_control
+    
+    echo -e "${GREEN}Domestic server setup completed successfully!${NC}"
+}
 
+# Function to setup foreign server
+setup_foreign_server() {
+    get_foreign_info
+    
+    # Run all foreign server components in order
+    set_timezone
+    install_certbot
+    configure_swap_memory
+    install_adguard_home
+    install_3xui
+    
     # Reboot countdown function
     reboot_countdown() {
         local seconds=5
         echo ""
-        echo "🟢 System will reboot in $seconds seconds to apply all changes."
-        echo "🟢 Press any key to cancel the reboot..."
+        echo -e "${GREEN}System will reboot in $seconds seconds to apply all changes.${NC}"
+        echo -e "${GREEN}Press any key to cancel the reboot...${NC}"
         
         while (( seconds > 0 )); do
             # Check for user input without blocking
             if read -t 1 -n 1; then
                 echo ""
-                echo "🟢 Reboot cancelled by user."
+                echo -e "${GREEN}Reboot cancelled by user.${NC}"
                 exit 0
             fi
             
@@ -1242,7 +1291,7 @@ EOF
         done
         
         echo ""
-        echo "🟢 Rebooting now..."
+        echo -e "${GREEN}Rebooting now...${NC}"
         sudo reboot
     }
 
@@ -1250,24 +1299,42 @@ EOF
     reboot_countdown
 }
 
-# Main menu loop
+# Function to handle package installation
+install_packages() {
+    while true; do
+        show_package_menu
+        read -p "Select an option (0-9): " choice
+        
+        case $choice in
+            1) set_timezone ;;
+            2) install_certbot ;;
+            3) install_basic_packages ;;
+            4) configure_dns ;;
+            5) create_dummy_files ;;
+            6) install_3xui ;;
+            7) configure_traffic_control ;;
+            8) install_adguard_home ;;
+            9) configure_swap_memory ;;
+            0) break ;;
+            *) echo -e "${RED}Invalid option. Please try again.${NC}" ;;
+        esac
+        
+        read -p "Press Enter to continue..."
+    done
+}
+
+# Main script execution
 while true; do
-    show_menu
+    show_main_menu
+    read -p "Select an option (0-3): " choice
+    
     case $choice in
-        1)
-            run_ares
-            ;;
-        2)
-            run_hermes
-            ;;
-     
-        0)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            sleep 1
-            ;;
+        1) setup_domestic_server ;;
+        2) setup_foreign_server ;;
+        3) install_packages ;;
+        0) echo -e "${GREEN}Exiting...${NC}"; exit 0 ;;
+        *) echo -e "${RED}Invalid option. Please try again.${NC}" ;;
     esac
+    
+    read -p "Press Enter to continue..."
 done
