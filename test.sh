@@ -59,7 +59,7 @@ show_foreign_components() {
     echo "║ 3. DNS Configuration                       ║"
     echo "║ 4. Swap Memory Configuration               ║"
     echo "║ 5. Warp Proxy                              ║"
-    echo "║ 6. AdGuard Home                            ║"
+    echo "║ 6. AdGuard Home install and configure      ║"
     echo "║ 7. 3x-ui Panel                             ║"
     echo "║ 8. ALL Components                          ║"
     echo "║ 0. Back to Main Menu                       ║"
