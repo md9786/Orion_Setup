@@ -409,7 +409,7 @@ echo "🟢 Configure default nginx page"
 install_traffic_limiter() {
     echo "🟢 Installing traffic limiter..."
     get_network_interface
-    get_rate_limit
+    
 
     SERVICE_NAME="traffic-limiter"
     SCRIPT_PATH="/usr/local/bin/traffic_control.sh"
