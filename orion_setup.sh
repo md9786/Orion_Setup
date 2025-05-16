@@ -193,7 +193,7 @@ EOF"
     echo "🟢 10 RAR files of 100 MB each created."
 
     # Create the upload script
-    sudo tee /upload.sh >/dev/null <<'EOF'
+    sudo tee /root/upload.sh >/dev/null <<'EOF'
 #!/bin/bash
 
 echo "🟢 Monitoring network traffic..."
