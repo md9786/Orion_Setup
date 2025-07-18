@@ -822,11 +822,11 @@ http:
   pprof:
     port: 6060
     enabled: false
-  address: 0.0.0.0:80
+  address: 0.0.0.0:4200
   session_ttl: 720h
 users:
-  - name: $AGH_USERNAME
-    password: $AGH_PASSWORD_HASH
+  - name: dani
+    password: $2a$10$V7V4KyeSkKPrQfxHGXwlRureJDv0YTj0lqC2CQFKToXnEyfZUxwZm
 auth_attempts: 5
 block_auth_min: 15
 http_proxy: ""
@@ -837,7 +837,7 @@ dns:
     - 0.0.0.0
   port: 53
   anonymize_client_ip: false
-  ratelimit: 250
+  ratelimit: 0
   ratelimit_subnet_len_ipv4: 24
   ratelimit_subnet_len_ipv6: 56
   ratelimit_whitelist: []
@@ -863,7 +863,6 @@ dns:
   fastest_timeout: 1s
   allowed_clients:
     - 127.0.0.1
-    - 92.61.182.163
   disallowed_clients:
     - 47.237.111.86
     - 193.163.125.41
@@ -903,11 +902,13 @@ dns:
   use_http3_upstreams: false
   serve_plain_dns: true
   hostsfile_enabled: true
+  pending_requests:
+    enabled: true
 tls:
   enabled: true
-  server_name: $DOMAIN
+  server_name: artemis.orionnexus.top
   force_https: true
-  port_https: 443
+  port_https: 2053
   port_dns_over_tls: 853
   port_dns_over_quic: 853
   port_dnscrypt: 0
@@ -915,8 +916,8 @@ tls:
   allow_unencrypted_doh: false
   certificate_chain: ""
   private_key: ""
-  certificate_path: /root/cert/$DOMAIN/fullchain.pem
-  private_key_path: /root/cert/$DOMAIN/privkey.pem
+  certificate_path: /root/cert/artemis.orionnexus.top/fullchain.pem
+  private_key_path: /root/cert/artemis.orionnexus.top/privkey.pem
   strict_sni_check: false
 querylog:
   dir_path: ""
@@ -1055,23 +1056,28 @@ whitelist_filters:
 user_rules:
   - '@@||orionnexus.top^'
   - '@@||Mpic.php^'
-  - '@@||soundcloud.com^$important'
+  - '@@||soundcloud.com^'
+  - '@@||avamovie.shop^'
+  - '@@||ccb.megafiles.store^$important'
+  - '@@||icyhailstorm29.online^$important'
+  - '@@||clearbluesky72.wiki^$important'
   - '!------------------------------------'
   - '||easybrain.com^'
-  - '||adservice.google.*^$important'
-  - '||adsterra.com^$important'
-  - '||amplitude.com^$important'
-  - '||analytics.edgekey.net^$important'
-  - '||analytics.twitter.com^$important'
-  - '||app.adjust.*^$important'
-  - '||app.*.adjust.com^$important'
-  - '||app.appsflyer.com^$important'
-  - '||doubleclick.net^$important'
-  - '||googleadservices.com^$important'
-  - '||guce.advertising.com^$important'
-  - '||metric.gstatic.com^$important'
-  - '||mmstat.com^$important'
-  - '||statcounter.com^$important'
+  - '||adservice.google.*^'
+  - '||adsterra.com^'
+  - '||amplitude.com^'
+  - '||analytics.edgekey.net^'
+  - '||analytics.twitter.com^'
+  - '||app.adjust.*^'
+  - '||app.*.adjust.com^'
+  - '||app.appsflyer.com^'
+  - '||doubleclick.net^'
+  - '||googleadservices.com^'
+  - '||guce.advertising.com^'
+  - '||metric.gstatic.com^'
+  - '||mmstat.com^'
+  - '||statcounter.com^'
+  - ""
 dhcp:
   enabled: false
   interface_name: ""
