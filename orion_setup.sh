@@ -825,8 +825,8 @@ http:
   address: 0.0.0.0:4200
   session_ttl: 720h
 users:
-  - name: dani
-    password: $2a$10$V7V4KyeSkKPrQfxHGXwlRureJDv0YTj0lqC2CQFKToXnEyfZUxwZm
+  - name: $AGH_USERNAME
+    password: $AGH_PASSWORD_HASH
 auth_attempts: 5
 block_auth_min: 15
 http_proxy: ""
