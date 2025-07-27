@@ -916,8 +916,8 @@ tls:
   allow_unencrypted_doh: false
   certificate_chain: ""
   private_key: ""
-  certificate_path: /root/cert/artemis.orionnexus.top/fullchain.pem
-  private_key_path: /root/cert/artemis.orionnexus.top/privkey.pem
+  certificate_path: /root/cert/$DOMAIN/fullchain.pem
+  private_key_path: /root/cert/$DOMAIN/privkey.pem
   strict_sni_check: false
 querylog:
   dir_path: ""
