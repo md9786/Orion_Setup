@@ -40,6 +40,7 @@ show_package_menu() {
     echo "║ 5. Install and Configure 3x-ui             ║"
     echo "║ 6. Configure Backhaul                      ║"
     echo "║ 7. Disable ICMP                            ║"
+    echo "║ 8. Install and Configure Psiphon           ║"
     echo "║ 0. Return to Main Menu                     ║"
     echo "╚════════════════════════════════════════════╝"
 }
@@ -228,6 +229,25 @@ get_xui_credentials() {
                 ;;
             [Nn]*)
                 echo -e "${GREEN}Skipping 3x-ui configuration...${NC}"
+                break
+                ;;
+            *)
+                echo -e "${RED}Please answer y or n.${NC}"
+                ;;
+        esac
+    done
+}
+
+# Function to get Psiphon configuration
+get_psiphon_config() {
+    while true; do
+        read -p "Do you want to configure Psiphon? (y/n): " CONFIG_PSIPHON
+        case $CONFIG_PSIPHON in
+            [Yy]*)
+                break
+                ;;
+            [Nn]*)
+                echo -e "${GREEN}Skipping Psiphon configuration...${NC}"
                 break
                 ;;
             *)
@@ -747,6 +767,54 @@ install_3xui() {
     fi
 }
 
+# Function to install and configure Psiphon
+install_psiphon() {
+    get_psiphon_config
+    if [ "$CONFIG_PSIPHON" = "y" ]; then
+        echo -e "${GREEN}Installing Psiphon...${NC}"
+        
+        # Install required packages
+        if ! command -v wget &> /dev/null; then
+            echo -e "${GREEN}Installing wget...${NC}"
+            apt-get install -y wget
+        fi
+
+        # Download and run Psiphon installation script
+        echo -e "${GREEN}Downloading Psiphon installation script...${NC}"
+        wget https://raw.githubusercontent.com/SpherionOS/PsiphonLinux/main/plinstaller2 -O plinstaller2
+        chmod +x plinstaller2
+        sudo sh plinstaller2
+        rm plinstaller2
+
+        # Create Psiphon systemd service
+        echo -e "${GREEN}Creating Psiphon systemd service...${NC}"
+        cat > /etc/systemd/system/psiphon.service <<EOF
+[Unit]
+Description=Psiphon Service
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/etc/psiphon/psiphon-tunnel-core-x86_64 -config /etc/psiphon/psiphon.config
+StandardOutput=append:/var/log/psiphon.log
+StandardError=append:/var/log/psiphon.log
+Restart=always
+User=root
+Group=root
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+        # Reload systemd and start Psiphon service
+        sudo systemctl daemon-reload
+        sudo systemctl enable psiphon.service
+        sudo systemctl start psiphon.service
+        echo -e "${GREEN}Psiphon service has been configured and started.${NC}"
+    fi
+}
+
 # Function to configure Backhaul
 configure_backhaul() {
     get_backhaul_config
@@ -869,6 +937,7 @@ foreign_server_setup() {
     get_agh_credentials
     get_backhaul_config
     get_xui_credentials
+    get_psiphon_config
     set_timezone
     if [ "$CONFIG_XUI" = "y" ] || [ "$CONFIG_AGH" = "y" ]; then
         install_certbot
@@ -884,6 +953,9 @@ foreign_server_setup() {
     fi
     if [ "$CONFIG_BACKHAUL" = "y" ]; then
         configure_backhaul
+    fi
+    if [ "$CONFIG_PSIPHON" = "y" ]; then
+        install_psiphon
     fi
     echo -e "${GREEN}Foreign server setup completed!${NC}"
 }
@@ -926,7 +998,7 @@ while true; do
         3)
             while true; do
                 show_package_menu
-                read -p "Enter your choice (0-7): " PACKAGE_CHOICE
+                read -p "Enter your choice (0-8): " PACKAGE_CHOICE
                 case $PACKAGE_CHOICE in
                     1)
                         set_timezone
@@ -949,11 +1021,14 @@ while true; do
                     7)
                         disable_icmp
                         ;;
+                    8)
+                        install_psiphon
+                        ;;
                     0)
                         break
                         ;;
                     *)
-                        echo -e "${RED}Invalid choice. Please select 0-7.${NC}"
+                        echo -e "${RED}Invalid choice. Please select 0-8.${NC}"
                         ;;
                 esac
                 read -p "Press Enter to continue..."
