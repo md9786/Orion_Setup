@@ -97,7 +97,7 @@ clear
     echo " ^Y88888P^  888     888  ^Y88P^  888  888           Y8P     888        888    Y888 "
     echo ""
     echo -e "${BLUE}=================================${NC}"
-    echo -e "${BLUE}       FRP INstall Tool       ${NC}"
+    echo -e "${BLUE}       FRP Management Tool       ${NC}"
     echo -e "${BLUE}=================================${NC}"
     echo
     echo "FRP Management Script"
