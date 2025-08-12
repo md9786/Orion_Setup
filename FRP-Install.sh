@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 # Helper functions
 print_header() {
     echo -e "${BLUE}=================================${NC}"
-    echo -e "${BLUE}       FRP Management Tool       ${NC}"
+    echo -e "${BLUE}       FRP INstall Tool       ${NC}"
     echo -e "${BLUE}=================================${NC}"
     echo
 }
