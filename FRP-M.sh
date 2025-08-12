@@ -86,7 +86,6 @@ stop_efrp() {
 
 # Main menu
 while true; do
-clear
     echo " .d88888b.          d8b                         888     888 8888888b.  888b    888 "
     echo "d88P^ ^Y88b         Y8P                         888     888 888   Y88b 8888b   888 "
     echo "888     888                                     888     888 888    888 88888b  888 "
