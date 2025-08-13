@@ -9,7 +9,7 @@ GREEN='\033[0;32m'   # Regular Green for start messages
 RED='\033[0;31m'     # Regular Red for stop messages
 YELLOW='\033[1;33m'  # Bright Yellow for highlights
 CYAN='\033[1;36m'
-PURPLE='\033[0;35m'
+BB='\033[1;34m'
 NC='\033[0m'         # No Color
 
 # Function to check FRP client logs
@@ -140,14 +140,14 @@ stop_efrp() {
 # Main menu
 while true; do
     clear
-    echo -e " ${PURPLE}.d88888b.          d8b                         888     888 8888888b.  888b    888 "
-    echo -e " ${PURPLE}d88P^ ^Y88b         Y8P                         888     888 888   Y88b 8888b   888 "
-    echo -e " ${PURPLE}888     888                                     888     888 888    888 88888b  888 "
-    echo -e " ${PURPLE}888     888 888d888 888  .d88b.  88888b.        Y88b   d88P 888   d88P 888Y88b 888 "
-    echo -e " ${PURPLE}888     888 888P^   888 d88^^88b 888 ^88b        Y88b d88P  8888888P^  888 Y88b888 "
-    echo -e " ${PURPLE}888     888 888     888 888  888 888  888         Y88o88P   888        888  Y88888 "
-    echo -e " ${PURPLE}Y88b. .d88P 888     888 Y88..88P 888  888          Y888P    888        888   Y8888 "
-    echo -e " ${PURPLE} ^Y88888P^  888     888  ^Y88P^  888  888           Y8P     888        888    Y888 "
+    echo -e " ${BB} .d88888b.          d8b                         888     888 8888888b.  888b    888 "
+    echo -e " ${BB}d88P^ ^Y88b         Y8P                         888     888 888   Y88b 8888b   888 "
+    echo -e " ${BB}888     888                                     888     888 888    888 88888b  888 "
+    echo -e " ${BB}888     888 888d888 888  .d88b.  88888b.        Y88b   d88P 888   d88P 888Y88b 888 "
+    echo -e " ${BB}888     888 888P^   888 d88^^88b 888 ^88b        Y88b d88P  8888888P^  888 Y88b888 "
+    echo -e " ${BB}888     888 888     888 888  888 888  888         Y88o88P   888        888  Y88888 "
+    echo -e " ${BB}Y88b. .d88P 888     888 Y88..88P 888  888          Y888P    888        888   Y8888 "
+    echo -e " ${BB} ^Y88888P^  888     888  ^Y88P^  888  888           Y8P     888        888    Y888 "
     echo ""
 
     echo -e "${BLUE}┌──────────────────────────────────────────────────┐${NC}"
