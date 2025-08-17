@@ -10,8 +10,8 @@ RED='\033[0;31m'     # Regular Red for stop messages
 YELLOW='\033[1;33m'  # Bright Yellow for highlights
 CYAN='\033[1;36m'
 PP='\033[1;35m'
-YY='\033[1;33m'
-RR='\033[1;33m'
+YY='\x1b[38;5;152m'
+RR='\x1b[38;5;215m'
 BB='\033[1;34m'
 NC='\033[0m'         # No Color
 
