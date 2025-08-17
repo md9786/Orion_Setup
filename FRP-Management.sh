@@ -9,6 +9,9 @@ GREEN='\033[0;32m'   # Regular Green for start messages
 RED='\033[0;31m'     # Regular Red for stop messages
 YELLOW='\033[1;33m'  # Bright Yellow for highlights
 CYAN='\033[1;36m'
+PP='\033[1;35m'
+YY='\033[1;33m'
+RR='\033[1;33m'
 BB='\033[1;34m'
 NC='\033[0m'         # No Color
 
@@ -986,9 +989,9 @@ while true; do
     echo -e "${BLUE}└──────────────────────────────────────────────────┘${NC}"
     echo ""
     echo -e "${GREEN}Main Menu:${NC}"
-    echo -e "${CYAN}  [1] Manage FRP clients${NC}"
-    echo -e "${CYAN}  [2] Manage FRP servers${NC}"
-    echo -e "${CYAN}  [3] Manage EFRP service${NC}"
+    echo -e "${PP}  [1] Manage FRP clients${NC}"
+    echo -e "${YY}  [2] Manage FRP servers${NC}"
+    echo -e "${RR}  [3] Manage EFRP service${NC}"
     echo -e "${CYAN}  [4] Install FRP${NC}"
     echo -e "${RED}  [5] Exit${NC}"
     echo ""
