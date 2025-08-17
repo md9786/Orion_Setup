@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # FRP Management Script
-# Manages FRP client and server instances for ports 42420-42424 and EFRP service
+# Manages FRP client and server instances based on config files in /root/frp/client and /root/frp/server, and EFRP service
 
 # Define color codes for a modern look
 BLUE='\033[0;34m'    # Regular Blue for logs
@@ -12,12 +12,25 @@ CYAN='\033[1;36m'
 BB='\033[1;34m'
 NC='\033[0m'         # No Color
 
+# Directories containing FRP client and server configuration files
+CLIENT_CONFIG_DIR="/root/frp/client"
+SERVER_CONFIG_DIR="/root/frp/server"
+
 # Function to check FRP client logs
 logs_frpc() {
     echo -e "${BLUE}Checking FRP client logs...${NC}"
-    for i in {42420..42424}; do
-        echo -e "${YELLOW}Logs for frpc@client-$i:${NC}"
-        journalctl -u frpc@client-$i -n 3 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
+    if [ ! -d "$CLIENT_CONFIG_DIR" ]; then
+        echo -e "${RED}Client configuration directory $CLIENT_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$CLIENT_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No client configuration files found in $CLIENT_CONFIG_DIR${NC}"
+            return 1
+        fi
+        client_name=$(basename "$config_file" .toml)
+        echo -e "${YELLOW}Logs for frpc@$client_name:${NC}"
+        journalctl -u frpc@"$client_name" -n 3 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
         echo ""
     done
 }
@@ -25,9 +38,18 @@ logs_frpc() {
 # Function to check FRP server logs
 logs_frps() {
     echo -e "${BLUE}Checking FRP server logs...${NC}"
-    for i in {42420..42424}; do
-        echo -e "${YELLOW}Logs for frps@server-$i:${NC}"
-        journalctl -u frps@server-$i -n 3 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
+    if [ ! -d "$SERVER_CONFIG_DIR" ]; then
+        echo -e "${RED}Server configuration directory $SERVER_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$SERVER_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No server configuration files found in $SERVER_CONFIG_DIR${NC}"
+            return 1
+        fi
+        server_name=$(basename "$config_file" .toml)
+        echo -e "${YELLOW}Logs for frps@$server_name:${NC}"
+        journalctl -u frps@"$server_name" -n 3 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
         echo ""
     done
 }
@@ -42,9 +64,18 @@ logs_efrp() {
 # Function to check extended FRP client logs
 logs_frpc_extended() {
     echo -e "${BLUE}Checking extended FRP client logs (last 200 lines)...${NC}"
-    for i in {42420..42424}; do
-        echo -e "${YELLOW}Extended logs for frpc@client-$i:${NC}"
-        journalctl -u frpc@client-$i -n 200 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
+    if [ ! -d "$CLIENT_CONFIG_DIR" ]; then
+        echo -e "${RED}Client configuration directory $CLIENT_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$CLIENT_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No client configuration files found in $CLIENT_CONFIG_DIR${NC}"
+            return 1
+        fi
+        client_name=$(basename "$config_file" .toml)
+        echo -e "${YELLOW}Extended logs for frpc@$client_name:${NC}"
+        journalctl -u frpc@"$client_name" -n 200 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
         echo ""
     done
 }
@@ -52,9 +83,18 @@ logs_frpc_extended() {
 # Function to check extended FRP server logs
 logs_frps_extended() {
     echo -e "${BLUE}Checking extended FRP server logs (last 200 lines)...${NC}"
-    for i in {42420..42424}; do
-        echo -e "${YELLOW}Extended logs for frps@server-$i:${NC}"
-        journalctl -u frps@server-$i -n 200 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
+    if [ ! -d "$SERVER_CONFIG_DIR" ]; then
+        echo -e "${RED}Server configuration directory $SERVER_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$SERVER_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No server configuration files found in $SERVER_CONFIG_DIR${NC}"
+            return 1
+        fi
+        server_name=$(basename "$config_file" .toml)
+        echo -e "${YELLOW}Extended logs for frps@$server_name:${NC}"
+        journalctl -u frps@"$server_name" -n 200 --no-pager | sed -E 's/^[A-Za-z]{3} [0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [^ ]* //'
         echo ""
     done
 }
@@ -62,13 +102,22 @@ logs_frps_extended() {
 # Function to start FRP clients
 start_frpc() {
     echo -e "${GREEN}Starting FRP clients...${NC}"
-    for i in {42420..42424}; do
-        if systemctl start frpc@client-$i; then
-            echo -e "${GREEN}Started frpc@client-$i${NC}"
-        else
-            echo -e "${RED}Failed to start frpc@client-$i${NC}"
+    if [ ! -d "$CLIENT_CONFIG_DIR" ]; then
+        echo -e "${RED}Client configuration directory $CLIENT_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$CLIENT_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No client configuration files found in $CLIENT_CONFIG_DIR${NC}"
+            return 1
         fi
-        systemctl status frpc@client-$i --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
+        client_name=$(basename "$config_file" .toml)
+        if systemctl start frpc@"$client_name"; then
+            echo -e "${GREEN}Started frpc@$client_name${NC}"
+        else
+            echo -e "${RED}Failed to start frpc@$client_name${NC}"
+        fi
+        systemctl status frpc@"$client_name" --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
         echo ""
     done
 }
@@ -76,13 +125,22 @@ start_frpc() {
 # Function to stop FRP clients
 stop_frpc() {
     echo -e "${RED}Stopping FRP clients...${NC}"
-    for i in {42420..42424}; do
-        if systemctl stop frpc@client-$i; then
-            echo -e "${RED}Stopped frpc@client-$i${NC}"
-        else
-            echo -e "${RED}Failed to stop frpc@client-$i${NC}"
+    if [ ! -d "$CLIENT_CONFIG_DIR" ]; then
+        echo -e "${RED}Client configuration directory $CLIENT_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$CLIENT_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No client configuration files found in $CLIENT_CONFIG_DIR${NC}"
+            return 1
         fi
-        systemctl status frpc@client-$i --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
+        client_name=$(basename "$config_file" .toml)
+        if systemctl stop frpc@"$client_name"; then
+            echo -e "${RED}Stopped frpc@$client_name${NC}"
+        else
+            echo -e "${RED}Failed to stop frpc@$client_name${NC}"
+        fi
+        systemctl status frpc@"$client_name" --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
         echo ""
     done
 }
@@ -90,13 +148,22 @@ stop_frpc() {
 # Function to start FRP servers
 start_frps() {
     echo -e "${GREEN}Starting FRP servers...${NC}"
-    for i in {42420..42424}; do
-        if systemctl start frps@server-$i; then
-            echo -e "${GREEN}Started frps@server-$i${NC}"
-        else
-            echo -e "${RED}Failed to start frps@server-$i${NC}"
+    if [ ! -d "$SERVER_CONFIG_DIR" ]; then
+        echo -e "${RED}Server configuration directory $SERVER_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$SERVER_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No server configuration files found in $SERVER_CONFIG_DIR${NC}"
+            return 1
         fi
-        systemctl status frps@server-$i --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
+        server_name=$(basename "$config_file" .toml)
+        if systemctl start frps@"$server_name"; then
+            echo -e "${GREEN}Started frps@$server_name${NC}"
+        else
+            echo -e "${RED}Failed to start frps@$server_name${NC}"
+        fi
+        systemctl status frps@"$server_name" --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
         echo ""
     done
 }
@@ -104,13 +171,22 @@ start_frps() {
 # Function to stop FRP servers
 stop_frps() {
     echo -e "${RED}Stopping FRP servers...${NC}"
-    for i in {42420..42424}; do
-        if systemctl stop frps@server-$i; then
-            echo -e "${RED}Stopped frps@server-$i${NC}"
-        else
-            echo -e "${RED}Failed to stop frps@server-$i${NC}"
+    if [ ! -d "$SERVER_CONFIG_DIR" ]; then
+        echo -e "${RED}Server configuration directory $SERVER_CONFIG_DIR not found!${NC}"
+        return 1
+    fi
+    for config_file in "$SERVER_CONFIG_DIR"/*.toml; do
+        if [ ! -e "$config_file" ]; then
+            echo -e "${RED}No server configuration files found in $SERVER_CONFIG_DIR${NC}"
+            return 1
         fi
-        systemctl status frps@server-$i --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
+        server_name=$(basename "$config_file" .toml)
+        if systemctl stop frps@"$server_name"; then
+            echo -e "${RED}Stopped frps@$server_name${NC}"
+        else
+            echo -e "${RED}Failed to stop frps@$server_name${NC}"
+        fi
+        systemctl status frps@"$server_name" --no-pager | grep "Active:" | sed 's/.*Active:/    Active:/'
         echo ""
     done
 }
