@@ -824,8 +824,8 @@ http:
   address: 0.0.0.0:4200
   session_ttl: 720h
 users:
-  - name: dani
-    password: $2a$10$OMb9V1wM6QbIGKlJelNDgO7GZv6eD5G96ffihtwLXgze1wljp/gZS
+  - name: $AGH_USERNAME
+    password: $AGH_PASSWORD_HASH
 auth_attempts: 5
 block_auth_min: 15
 http_proxy: ""
@@ -954,8 +954,8 @@ tls:
   allow_unencrypted_doh: false
   certificate_chain: ""
   private_key: ""
-  certificate_path: /root/cert/artemis.orionnexus.top/fullchain.pem
-  private_key_path: /root/cert/artemis.orionnexus.top/privkey.pem
+  certificate_path: /root/cert/$CERTBOT_DOMAIN/fullchain.pem
+  private_key_path: /root/cert/$CERTBOT_DOMAIN/privkey.pem
   strict_sni_check: false
 querylog:
   dir_path: ""
