@@ -57,7 +57,6 @@ show_package_menu() {
     echo "║ 6. Install and Configure 3x-ui             ║"
     echo "║ 7. Configure Traffic Control               ║"
     echo "║ 8. Install AdGuard Home                    ║"
-    echo "║ 9. Configure Swap Memory                   ║"
     echo "║ 0. Return to Main Menu                     ║"
     echo "╚════════════════════════════════════════════╝"
 }
@@ -1293,18 +1292,7 @@ EOF"
     echo "🟢 A backup of the original file was saved as /etc/systemd/resolved.conf.bak"
 }
 
-# Function to configure swap memory
-configure_swap_memory() {
-    echo -e "${GREEN}Configuring swap memory...${NC}"
-    sudo swapoff -a
-    sudo dd if=/dev/zero of=/swapfile bs=1G count=8
-    sudo chmod 600 /swapfile
-    sudo mkswap /swapfile
-    sudo swapon /swapfile
-    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-    cat /etc/fstab  # Check for duplicate entries
-    echo -e "${GREEN}Swap memory configured successfully.${NC}"
-}
+
 
 # Function to setup domestic server
 setup_domestic_server() {
@@ -1329,7 +1317,6 @@ setup_foreign_server() {
     # Run all foreign server components in order
     set_timezone
     install_certbot
-    configure_swap_memory
     install_adguard_home
     install_3xui
     
@@ -1377,7 +1364,6 @@ install_packages() {
             6) install_3xui ;;
             7) configure_traffic_control ;;
             8) install_adguard_home ;;
-            9) configure_swap_memory ;;
             0) break ;;
             *) echo -e "${RED}Invalid option. Please try again.${NC}" ;;
         esac
