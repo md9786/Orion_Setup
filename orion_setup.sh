@@ -825,8 +825,8 @@ http:
   address: 0.0.0.0:4200
   session_ttl: 720h
 users:
-  - name: $AGH_USERNAME
-    password: $AGH_PASSWORD_HASH
+  - name: dani
+    password: $2a$10$OMb9V1wM6QbIGKlJelNDgO7GZv6eD5G96ffihtwLXgze1wljp/gZS
 auth_attempts: 5
 block_auth_min: 15
 http_proxy: ""
@@ -873,9 +873,48 @@ dns:
     - version.bind
     - id.server
     - hostname.bind
+    - trk.pinterest.com
+    - mobile.events.data.microsoft.com
+    - locationhistory-pa.googleapis.com
+    - firebaselogging.googleapis.com
+    - jarlio-launches.appsflyersdk.com
+    - prod-mediate-events.applovin.com
+    - etahub.com
+    - googleads.g.doubleclick.net
+    - reqhfg-launches.appsflyersdk.com
+    - mobile.pipe.aria.microsoft.com
+    - teams.events.data.microsoft.com
+    - receiver.habby.mobi
+    - mqtt-gw.pushnotifs.com
+    - firebaselogging-pa.googleapis.com
+    - o-sdk.mediation.unity3d.com
+    - jarlio-inapps.appsflyersdk.com
+    - api-apac.bidmachine.io
+    - app-analytics-services.com
+    - app-analytics-v2.snapchat.com
+    - beacons.gcp.gvt2.com
+    - beacons.gvt2.com
+    - beacons5.gvt3.com
+    - bstream.kzhi.tech
+    - cdn.iads.unity3d.com
+    - cdn2.inner-active.mobi
+    - g.live.com
+    - gamedot.afafb.com
+    - graph.instagram.com
+    - in.appcenter.ms
+    - log16-normal-useast8.tiktokv.us
+    - logs.ads.vungle.com
+    - sac.presage.io
+    - sdk.split.io
+    - sdk-events.inner-active.mobi
+    - self.events.data.microsoft.com
+    - unif-id.ssp.inmobi.com
+    - y.hashemi0026.example.com
+    - y.hashemi0026.example.com.aeza.network
   trusted_proxies:
     - 127.0.0.0/8
     - ::1/128
+  cache_enabled: true
   cache_size: 4194304
   cache_ttl_min: 0
   cache_ttl_max: 0
@@ -916,15 +955,15 @@ tls:
   allow_unencrypted_doh: false
   certificate_chain: ""
   private_key: ""
-  certificate_path: /root/cert/$DOMAIN/fullchain.pem
-  private_key_path: /root/cert/$DOMAIN/privkey.pem
+  certificate_path: /root/cert/artemis.orionnexus.top/fullchain.pem
+  private_key_path: /root/cert/artemis.orionnexus.top/privkey.pem
   strict_sni_check: false
 querylog:
   dir_path: ""
   ignored: []
   interval: 24h
   size_memory: 1000
-  enabled: true
+  enabled: false
   file_enabled: true
 statistics:
   dir_path: ""
@@ -1058,9 +1097,10 @@ user_rules:
   - '@@||Mpic.php^'
   - '@@||soundcloud.com^'
   - '@@||avamovie.shop^'
-  - '@@||ccb.megafiles.store^$important'
-  - '@@||icyhailstorm29.online^$important'
-  - '@@||clearbluesky72.wiki^$important'
+  - '@@||ccb.megafiles.store^'
+  - '@@||icyhailstorm29.online^'
+  - '@@||clearbluesky72.wiki^'
+  - '@@||notube.cc^'
   - '!------------------------------------'
   - '||easybrain.com^'
   - '||adservice.google.*^'
@@ -1077,6 +1117,8 @@ user_rules:
   - '||metric.gstatic.com^'
   - '||mmstat.com^'
   - '||statcounter.com^'
+  - '||y.hashemi0026.example.com.aeza.network^$important'
+  - '||y.hashemi0026.example.com^$important'
   - ""
 dhcp:
   enabled: false
@@ -1122,7 +1164,7 @@ filtering:
   safesearch_cache_size: 1048576
   parental_cache_size: 1048576
   cache_time: 30
-  filters_update_interval: 12
+  filters_update_interval: 24
   blocked_response_ttl: 10
   filtering_enabled: true
   parental_enabled: false
@@ -1210,7 +1252,7 @@ os:
   group: ""
   user: ""
   rlimit_nofile: 0
-schema_version: 29
+schema_version: 30
 EOF
 
     # Move the temporary file to the final location
