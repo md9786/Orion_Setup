@@ -944,7 +944,7 @@ dns:
     enabled: true
 tls:
   enabled: true
-  server_name: artemis.orionnexus.top
+  server_name: $DOMAIN
   force_https: true
   port_https: 2053
   port_dns_over_tls: 853
@@ -954,8 +954,8 @@ tls:
   allow_unencrypted_doh: false
   certificate_chain: ""
   private_key: ""
-  certificate_path: /root/cert/$CERTBOT_DOMAIN/fullchain.pem
-  private_key_path: /root/cert/$CERTBOT_DOMAIN/privkey.pem
+  certificate_path: /root/cert/$DOMAIN/fullchain.pem
+  private_key_path: /root/cert/$DOMAIN/privkey.pem
   strict_sni_check: false
 querylog:
   dir_path: ""
