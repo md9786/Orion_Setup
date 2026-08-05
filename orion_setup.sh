@@ -548,6 +548,55 @@ EOF"
     echo "🟢 A backup of the original file was saved as /etc/systemd/resolved.conf.bak"
 }
 
+# Function to install Psiphon and setup systemd service
+install_psiphon() {
+    echo -e "${GREEN}Preparing Psiphon installation...${NC}"
+    
+    # Ensure wget is installed
+    if ! command -v wget &> /dev/null; then
+        echo -e "${GREEN}wget is not installed. Installing wget...${NC}"
+        sudo apt-get install -y wget
+    fi
+
+    # Download plinstaller2
+    echo -e "${GREEN}Downloading Psiphon Linux installer script...${NC}"
+    wget -O /tmp/plinstaller2 https://raw.githubusercontent.com/SpherionOS/PsiphonLinux/main/plinstaller2
+    
+    # Run the installer script
+    echo -e "${GREEN}Running the installer script...${NC}"
+    sudo sh /tmp/plinstaller2
+
+    # Create the systemd service file
+    echo -e "${GREEN}Creating systemd service for Psiphon...${NC}"
+    sudo tee /etc/systemd/system/psiphon.service > /dev/null <<EOF
+[Unit]
+Description=Psiphon Tunnel Core (local HTTP/SOCKS proxy)
+Documentation=https://github.com/SpherionOS/PsiphonLinux
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/etc/psiphon/psiphon-tunnel-core-x86_64 -config /etc/psiphon/psiphon.config
+WorkingDirectory=/etc/psiphon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # Reload systemd and enable/start the service
+    echo -e "${GREEN}Enabling and starting Psiphon service...${NC}"
+    sudo systemctl daemon-reload
+    sudo systemctl enable psiphon.service
+    sudo systemctl start psiphon.service
+
+    # Clean up the temporary installer
+    rm -f /tmp/plinstaller2
+    echo -e "${GREEN}Psiphon has been successfully installed and started.${NC}"
+}
+
 # Function to setup foreign server
 setup_foreign_server() {
     get_foreign_info
@@ -555,6 +604,7 @@ setup_foreign_server() {
     # Run all foreign server components in order
     set_timezone
     install_adguard_home
+    install_psiphon
     
     # Reboot countdown function
     reboot_countdown() {
